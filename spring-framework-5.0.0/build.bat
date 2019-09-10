@@ -1,0 +1,22 @@
+.\gradlew :spring-aop:compileTestJava &^
+.\gradlew :spring-aspects:compileTestJava &^
+.\gradlew :spring-beans:compileTestJava &^
+.\gradlew :spring-context:compileTestJava &^
+.\gradlew :spring-context-indexer:compileTestJava &^
+.\gradlew :spring-context-support:compileTestJava &^
+.\gradlew :spring-core:compileTestJava &^
+.\gradlew :spring-expression:compileTestJava &^
+.\gradlew :spring-framework-bom:compileTestJava &^
+.\gradlew :spring-instrument:compileTestJava &^
+.\gradlew :spring-jcl:compileTestJava &^
+.\gradlew :spring-jdbc:compileTestJava &^
+.\gradlew :spring-jms:compileTestJava &^
+.\gradlew :spring-messaging:compileTestJava &^
+.\gradlew :spring-orm:compileTestJava &^
+.\gradlew :spring-oxm:compileTestJava &^
+.\gradlew :spring-test:compileTestJava &^
+.\gradlew :spring-tx:compileTestJava &^
+.\gradlew :spring-web:compileTestJava &^
+.\gradlew :spring-webflux:compileTestJava &^
+.\gradlew :spring-webmvc:compileTestJava &^
+.\gradlew :spring-websocket:compileTestJava
