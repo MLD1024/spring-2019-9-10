@@ -8,7 +8,6 @@ public class LzApplication {
 
 	public static void main(String[] args) {
 		SpringApplication application = new SpringApplication(LzApplication.class);
-//		application.addListeners(new ApplicationStartup());
 		application.run(args);
 	}
 }
