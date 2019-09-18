@@ -16,6 +16,16 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.gradle/build-scan-plugin -->
+		<dependency>
+			<groupId>com.gradle</groupId>
+			<artifactId>build-scan-plugin</artifactId>
+			<version>1.8</version>
+		</dependency>
+
+
+
+
 	</dependencies>
 	<!--<build>-->
 		<!--<plugins>-->
