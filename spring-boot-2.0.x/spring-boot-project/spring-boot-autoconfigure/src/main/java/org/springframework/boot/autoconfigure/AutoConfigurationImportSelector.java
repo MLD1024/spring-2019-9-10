@@ -65,6 +65,7 @@ import org.springframework.util.StringUtils;
  * @author Madhura Bhave
  * @since 1.3.0
  * @see EnableAutoConfiguration
+ * 处理@EnableAutoConfiguration 注解的资源导入。
  */
 public class AutoConfigurationImportSelector implements DeferredImportSelector, BeanClassLoaderAware,
 		ResourceLoaderAware, BeanFactoryAware, EnvironmentAware, Ordered {
@@ -102,6 +103,7 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 	}
 
 	@Override
+	// 实现自 DeferredImportSelector 接口
 	public Class<? extends Group> getImportGroup() {
 		return AutoConfigurationGroup.class;
 	}
@@ -146,8 +148,10 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 	 * @return a list of candidate configurations
 	 */
 	protected List<String> getCandidateConfigurations(AnnotationMetadata metadata, AnnotationAttributes attributes) {
+		// <1> 加载指定类型 EnableAutoConfiguration 对应的，在 `META-INF/spring.factories` 里的类名的数组
 		List<String> configurations = SpringFactoriesLoader.loadFactoryNames(getSpringFactoriesLoaderFactoryClass(),
 				getBeanClassLoader());
+		// 断言，非空
 		Assert.notEmpty(configurations, "No auto configuration classes found in META-INF/spring.factories. If you "
 				+ "are using a custom packaging, make sure that file is correct.");
 		return configurations;
@@ -342,7 +346,10 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 
 		private ResourceLoader resourceLoader;
 
+		// AnnotationMetadata 的映射 KEY：配置类的全类名 ，AnnotationMetadata 的映射。其中，KEY 为 配置类的全类名。
+		// 在后续我们将看到的 AutoConfigurationGroup#process(...) 方法中，被进行赋值
 		private final Map<String, AnnotationMetadata> entries = new LinkedHashMap<>();
+
 
 		@Override
 		public void setBeanClassLoader(ClassLoader classLoader) {
