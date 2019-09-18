@@ -825,9 +825,11 @@ class ConfigurationClassParser {
 		 */
 		public Iterable<Group.Entry> getImports() {
 			for (DeferredImportSelectorHolder deferredImport : this.deferredImports) {
+				//调用 DeferredImportSelector.Group#process(AnnotationMetadata metadata, DeferredImportSelector selector) 方法，处理被 @Import 注解的注解。
 				this.group.process(deferredImport.getConfigurationClass().getMetadata(),
 						deferredImport.getImportSelector());
 			}
+			//调用 DeferredImportSelector.Group#this.group.selectImports() 方法，选择需要导入的。例如：
 			return this.group.selectImports();
 		}
 	}

@@ -323,12 +323,12 @@ public class SpringApplication {
 			ApplicationArguments applicationArguments = new DefaultApplicationArguments(args);
 			// <4> 加载属性配置。执行完成后，所有的 environment 的属性都会加载进来，包括 application.properties 和外部的属性配置。
 			ConfigurableEnvironment environment = prepareEnvironment(listeners, applicationArguments);
-			// <5> 打印 Spring Banner
 			configureIgnoreBeanInfo(environment);
-			// <6> 创建 Spring 容器。
+			// <5> 打印 Spring Banner
 			Banner printedBanner = printBanner(environment);
-			// <7> 异常报告器
+			// <6> 创建 Spring 容器。
 			context = createApplicationContext();
+			// <7> 异常报告器
 			exceptionReporters = getSpringFactoriesInstances(SpringBootExceptionReporter.class,
 					new Class[] { ConfigurableApplicationContext.class }, context);
 			// <8> 主要是调用所有初始化类的 initialize 方法
@@ -366,6 +366,7 @@ public class SpringApplication {
 		return context;
 	}
 
+	//加载属性配置。执行完成后，所有的 environment 的属性都会加载进来，包括 application.properties 和外部的属性配置
 	private ConfigurableEnvironment prepareEnvironment(SpringApplicationRunListeners listeners,
 			ApplicationArguments applicationArguments) {
 		// Create and configure the environment
@@ -448,6 +449,7 @@ public class SpringApplication {
 				System.getProperty(SYSTEM_PROPERTY_JAVA_AWT_HEADLESS, Boolean.toString(this.headless)));
 	}
 
+	// 获得 SpringApplicationRunListener 数组，并启动监听。代码如下：
 	private SpringApplicationRunListeners getRunListeners(String[] args) {
 		Class<?>[] types = new Class<?>[] { SpringApplication.class, String[].class };
 		return new SpringApplicationRunListeners(logger,
@@ -518,6 +520,7 @@ public class SpringApplication {
 			return this.environment;
 		}
 		// 不存在，则根据 webApplicationType 类型，进行创建。
+		// 会创建不同类型的 ConfigurableEnvironment 对象。
 		switch (this.webApplicationType) {
 		case SERVLET:
 			return new StandardServletEnvironment();
