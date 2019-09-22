@@ -103,73 +103,112 @@ import org.springframework.util.StringValueResolver;
  * @author Juergen Hoeller
  * @author Costin Leau
  * @author Chris Beams
- * @since 15 April 2001
  * @see #getBeanDefinition
  * @see #createBean
  * @see AbstractAutowireCapableBeanFactory#createBean
  * @see DefaultListableBeanFactory#getBeanDefinition
+ * @since 15 April 2001
  */
 public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport implements ConfigurableBeanFactory {
 
-	/** Parent bean factory, for bean inheritance support */
+	/**
+	 * Parent bean factory, for bean inheritance support
+	 */
 	@Nullable
 	private BeanFactory parentBeanFactory;
 
-	/** ClassLoader to resolve bean class names with, if necessary */
+	/**
+	 * ClassLoader to resolve bean class names with, if necessary
+	 */
 	@Nullable
 	private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
 
-	/** ClassLoader to temporarily resolve bean class names with, if necessary */
+	/**
+	 * ClassLoader to temporarily resolve bean class names with, if necessary
+	 */
 	@Nullable
 	private ClassLoader tempClassLoader;
 
-	/** Whether to cache bean metadata or rather reobtain it for every access */
+	/**
+	 * Whether to cache bean metadata or rather reobtain it for every access
+	 */
 	private boolean cacheBeanMetadata = true;
 
-	/** Resolution strategy for expressions in bean definition values */
+	/**
+	 * Resolution strategy for expressions in bean definition values
+	 */
 	@Nullable
 	private BeanExpressionResolver beanExpressionResolver;
 
-	/** Spring ConversionService to use instead of PropertyEditors */
+	/**
+	 * Spring ConversionService to use instead of PropertyEditors
+	 */
 	@Nullable
 	private ConversionService conversionService;
 
-	/** Custom PropertyEditorRegistrars to apply to the beans of this factory */
+	/**
+	 * Custom PropertyEditorRegistrars to apply to the beans of this factory
+	 */
 	private final Set<PropertyEditorRegistrar> propertyEditorRegistrars = new LinkedHashSet<>(4);
 
-	/** Custom PropertyEditors to apply to the beans of this factory */
+	/**
+	 * Custom PropertyEditors to apply to the beans of this factory
+	 */
 	private final Map<Class<?>, Class<? extends PropertyEditor>> customEditors = new HashMap<>(4);
 
-	/** A custom TypeConverter to use, overriding the default PropertyEditor mechanism */
+	/**
+	 * A custom TypeConverter to use, overriding the default PropertyEditor mechanism
+	 */
 	@Nullable
 	private TypeConverter typeConverter;
 
-	/** String resolvers to apply e.g. to annotation attribute values */
+	/**
+	 * String resolvers to apply e.g. to annotation attribute values
+	 */
 	private final List<StringValueResolver> embeddedValueResolvers = new CopyOnWriteArrayList<>();
 
-	/** BeanPostProcessors to apply in createBean */
+	/**
+	 * BeanPostProcessors to apply in createBean
+	 */
 	private final List<BeanPostProcessor> beanPostProcessors = new CopyOnWriteArrayList<>();
 
-	/** Indicates whether any InstantiationAwareBeanPostProcessors have been registered */
+	/**
+	 * Indicates whether any InstantiationAwareBeanPostProcessors have been registered
+	 */
 	private volatile boolean hasInstantiationAwareBeanPostProcessors;
 
-	/** Indicates whether any DestructionAwareBeanPostProcessors have been registered */
+	/**
+	 * Indicates whether any DestructionAwareBeanPostProcessors have been registered
+	 */
 	private volatile boolean hasDestructionAwareBeanPostProcessors;
 
-	/** Map from scope identifier String to corresponding Scope */
+	/**
+	 * Map from scope identifier String to corresponding Scope
+	 */
 	private final Map<String, Scope> scopes = new LinkedHashMap<>(8);
 
-	/** Security context used when running with a SecurityManager */
+	/**
+	 * Security context used when running with a SecurityManager
+	 */
 	@Nullable
 	private SecurityContextProvider securityContextProvider;
 
-	/** Map from bean name to merged RootBeanDefinition */
+	/**
+	 * Map from bean name to merged RootBeanDefinition
+	 */
 	private final Map<String, RootBeanDefinition> mergedBeanDefinitions = new ConcurrentHashMap<>(256);
 
-	/** Names of beans that have already been created at least once */
+	/**
+	 * Names of beans that have already been created at least once
+	 * <p>
+	 * 已创建 Bean 的名字集合
+	 */
 	private final Set<String> alreadyCreated = Collections.newSetFromMap(new ConcurrentHashMap<>(256));
 
-	/** Names of beans that are currently in creation */
+	/**
+	 * Names of beans that are currently in creation
+	 * 在创建的 Bean ，
+	 */
 	private final ThreadLocal<Object> prototypesCurrentlyInCreation =
 			new NamedThreadLocal<>("Prototype beans currently in creation");
 
@@ -182,6 +221,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 	/**
 	 * Create a new AbstractBeanFactory with the given parent.
+	 *
 	 * @param parentBeanFactory parent bean factory, or {@code null} if none
 	 * @see #getBean
 	 */
@@ -196,6 +236,12 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 	@Override
 	public Object getBean(String name) throws BeansException {
+//		内部调用 doGetBean(String name, final Class<T> requiredType, Object[] args, boolean typeCheckOnly) 方法，
+//		其接受四个方法参数：
+//		name ：要获取 Bean 的名字
+//		requiredType ：要获取 bean 的类型
+//		args ：创建 Bean 时传递的参数。这个参数仅限于创建 Bean 时使用。
+//		typeCheckOnly ：是否为类型检查。
 		return doGetBean(name, null, null, false);
 	}
 
@@ -211,10 +257,11 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 	/**
 	 * Return an instance, which may be shared or independent, of the specified bean.
-	 * @param name the name of the bean to retrieve
+	 *
+	 * @param name         the name of the bean to retrieve
 	 * @param requiredType the required type of the bean to retrieve
-	 * @param args arguments to use when creating a bean instance using explicit arguments
-	 * (only applied when creating a new instance as opposed to retrieving an existing one)
+	 * @param args         arguments to use when creating a bean instance using explicit arguments
+	 *                     (only applied when creating a new instance as opposed to retrieving an existing one)
 	 * @return an instance of the bean
 	 * @throws BeansException if the bean could not be created
 	 */
@@ -226,52 +273,38 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 	/**
 	 * Return an instance, which may be shared or independent, of the specified bean.
-	 * @param name the name of the bean to retrieve
-	 * @param requiredType the required type of the bean to retrieve
-	 * @param args arguments to use when creating a bean instance using explicit arguments
-	 * (only applied when creating a new instance as opposed to retrieving an existing one)
+	 *
+	 * @param name          the name of the bean to retrieve
+	 * @param requiredType  the required type of the bean to retrieve
+	 * @param args          arguments to use when creating a bean instance using explicit arguments
+	 *                      (only applied when creating a new instance as opposed to retrieving an existing one)
 	 * @param typeCheckOnly whether the instance is obtained for a type check,
-	 * not for actual use
+	 *                      not for actual use
 	 * @return an instance of the bean
 	 * @throws BeansException if the bean could not be created
 	 */
 	@SuppressWarnings("unchecked")
 	protected <T> T doGetBean(final String name, @Nullable final Class<T> requiredType,
-			@Nullable final Object[] args, boolean typeCheckOnly) throws BeansException {
-		/**
-		 * 通过 name 获取 beanName。这里不使用 name 直接作为 beanName 有两个原因
-		 * 1、name 可能会以 & 字符开头，表明调用者想获取 FactoryBean 本身，而非 FactoryBean
-		 *   实现类所创建的 bean。在 BeanFactory 中，FactoryBean 的实现类和其他的 bean 存储
-		 *   方式是一致的，即 <beanName, bean>，beanName 中是没有 & 这个字符的。所以我们需要
-		 *   将 name 的首字符 & 移除，这样才能从缓存里取到 FactoryBean 实例。
-		 * 2、还是别名的问题，转换需要
-		 * &beanName
-		 */
+							  @Nullable final Object[] args, boolean typeCheckOnly) throws BeansException {
+
+//		  这里传递的是 name 方法，
+//		  不一定就是 beanName，
+//		  可能是 aliasName ，
+//		  也有可能是 FactoryBean ，
+//		  所以这里需要调用 #transformedBeanName(String name) 方法，对 name 进行一番转换。代码如
 		final String beanName = transformedBeanName(name);
 		Object bean;
 
 		// Eagerly check singleton cache for manually registered singletons.
-
-//		  这个方法在初始化的时候会调用，在getBean的时候也会调用
-//		  为什么需要这么做呢？
-//		  也就是说spring在初始化的时候先获取这个对象
-//		  判断这个对象是否被实例化好了(普通情况下绝对为空====有一种情况可能不为空)
-//		  从spring的bean容器中获取一个bean，由于spring中bean容器是一个map（singletonObjects）
-//		  所以你可以理解getSingleton(beanName)等于beanMap.get(beanName)
-//		  由于方法会在spring环境初始化的时候（就是对象被创建的时候调用一次）调用一次
-//		  还会在getBean的时候调用一次
-//		  所以再调试的时候需要特别注意，不能直接断点在这里，
-//		  需要先进入到annotationConfigApplicationContext.getBean(IndexDao.class)
-//		  之后再来断点，这样就确保了我们是在获取这个bean的时候调用的
-//		  需要说明的是在初始化时候调用一般都是返回null
+		// 从缓存中或者实例工厂中获取 Bean 对象
 		Object sharedInstance = getSingleton(beanName);
 		if (sharedInstance != null && args == null) {
 			if (logger.isDebugEnabled()) {
+
 				if (isSingletonCurrentlyInCreation(beanName)) {
 					logger.debug("Returning eagerly cached instance of singleton bean '" + beanName +
 							"' that is not fully initialized yet - a consequence of a circular reference");
-				}
-				else {
+				} else {
 					logger.debug("Returning cached instance of singleton bean '" + beanName + "'");
 				}
 			}
@@ -281,61 +314,82 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			 * bean 实例。如果用户想获取 FactoryBean 本身，这里也不会做特别的处理，直接返回
 			 * 即可。毕竟 FactoryBean 的实现类本身也是一种 bean，只不过具有一点特殊的功能而已。
 			 */
+			// <x> 完成 FactoryBean 的相关处理，并用来获取 FactoryBean 的处理结果
 			bean = getObjectForBeanInstance(sharedInstance, name, beanName, null);
-		}
-
-		else {
+		} else {
 			// Fail if we're already creating this bean instance:
 			// We're assumably within a circular reference.
 			/**
 			 * 原型
 			 * 如果是原型不应该在初始化的时候创建
 			 */
+			// 因为 Spring 只解决单例模式下得循环依赖，在原型模式下如果存在循环依赖则会抛出异常。
+			//检测。若当前 Bean 在创建，则抛出 BeanCurrentlyInCreationException 异常。
 			if (isPrototypeCurrentlyInCreation(beanName)) {
 				throw new BeanCurrentlyInCreationException(beanName);
 			}
 
+			// 如果当前容器中没有找到，则从父类容器中加载
 			// Check if bean definition exists in this factory.
 			BeanFactory parentBeanFactory = getParentBeanFactory();
+			// parentBeanFactory 不为空且 beanDefinitionMap 中不存该 name 的 BeanDefinition
 			if (parentBeanFactory != null && !containsBeanDefinition(beanName)) {
 				// Not found -> check parent.
+				// 确定原始 beanName
 				String nameToLookup = originalBeanName(name);
+				// 如果，父类容器为 AbstractBeanFactory ，直接递归查找
+				// 若为 AbstractBeanFactory 类型，委托父类处理
 				if (parentBeanFactory instanceof AbstractBeanFactory) {
 					return ((AbstractBeanFactory) parentBeanFactory).doGetBean(
 							nameToLookup, requiredType, args, typeCheckOnly);
 				}
+				// 用明确的 args 从 parentBeanFactory 中，获取 Bean 对象
 				else if (args != null) {
+					// 委托给构造函数 getBean() 处理
 					// Delegation to parent with explicit args.
 					return (T) parentBeanFactory.getBean(nameToLookup, args);
 				}
+				// 直接使用 nameToLookup 从 parentBeanFactory 获取 Bean 对象
 				else {
 					// No args -> delegate to standard getBean method.
+					// 没有 args，委托给标准的 getBean() 处理
 					return parentBeanFactory.getBean(nameToLookup, requiredType);
 				}
 			}
-
+			// 如果不是仅仅做类型检查则是创建bean，这里需要记录
+			//方法参数 typeCheckOnly ，是用来判断调用 #getBean(...) 方法时，
+			// 表示是否为仅仅进行类型检查获取 Bean 对象。如果不是仅仅做类型检查，
+			// 而是创建 Bean对象，则需要调用 #markBeanAsCreated(String beanName) 方法
 			if (!typeCheckOnly) {
 				//添加到alreadyCreated set集合当中，表示他已经创建过一场
 				markBeanAsCreated(beanName);
 			}
 
 			try {
+
+				// 从容器中获取 beanName 相应的 GenericBeanDefinition 对象，并将其转换为 RootBeanDefinition 对象
 				final RootBeanDefinition mbd = getMergedLocalBeanDefinition(beanName);
+				// 检查给定的合并的 BeanDefinition
 				checkMergedBeanDefinition(mbd, beanName, args);
 
 				// Guarantee initialization of beans that the current bean depends on.
+				// 处理所依赖的 bean 以来处理
 				String[] dependsOn = mbd.getDependsOn();
 				if (dependsOn != null) {
 					for (String dep : dependsOn) {
+						// 若给定的依赖 bean 已经注册为依赖给定的 bean
+						// 即循环依赖的情况，抛出 BeanCreationException 异常
+//						是校验该依赖是否已经注册给当前 Bean
 						if (isDependent(beanName, dep)) {
 							throw new BeanCreationException(mbd.getResourceDescription(), beanName,
 									"Circular depends-on relationship between '" + beanName + "' and '" + dep + "'");
 						}
+						// 缓存依赖调用
 						registerDependentBean(dep, beanName);
 						try {
+							// 递归处理依赖 Bean
 							getBean(dep);
-						}
-						catch (NoSuchBeanDefinitionException ex) {
+						} catch (NoSuchBeanDefinitionException ex) {
 							throw new BeanCreationException(mbd.getResourceDescription(), beanName,
 									"'" + beanName + "' depends on missing bean '" + dep + "'", ex);
 						}
@@ -344,77 +398,80 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 				// Create bean instance.
 				// 创建bean 实例  ObjectFactory 函数接口  使用lambda 表达式
-				if (mbd.isSingleton()) {
+				if (mbd.isSingleton()) { // 单例模式
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
 							return createBean(beanName, mbd, args);
-						}
-						catch (BeansException ex) {
+						} catch (BeansException ex) {
 							// Explicitly remove instance from singleton cache: It might have been put there
 							// eagerly by the creation process, to allow for circular reference resolution.
 							// Also remove any beans that received a temporary reference to the bean.
+							// 因为单例模式下为了解决循环依赖，可能他已经存在了，所以销毁它。
 							destroySingleton(beanName);
 							throw ex;
 						}
 					});
 					bean = getObjectForBeanInstance(sharedInstance, name, beanName, mbd);
-				}
-
-				else if (mbd.isPrototype()) {
+				} else if (mbd.isPrototype()) { // 原型模式
 					// It's a prototype -> create a new instance.
 					Object prototypeInstance = null;
 					try {
+						// <1> 加载前置处理
 						beforePrototypeCreation(beanName);
+						// <2> 创建 Bean 对象
 						prototypeInstance = createBean(beanName, mbd, args);
-					}
-					finally {
+					} finally {
+						// <3> 加载后缀处理
 						afterPrototypeCreation(beanName);
 					}
+					// <4> 从 Bean 实例中获取对象
 					bean = getObjectForBeanInstance(prototypeInstance, name, beanName, mbd);
-				}
-
-				else {
+				} else {
+					// 从指定的 scope 下创建 bean
 					String scopeName = mbd.getScope();
 					final Scope scope = this.scopes.get(scopeName);
 					if (scope == null) {
 						throw new IllegalStateException("No Scope registered for scope name '" + scopeName + "'");
 					}
 					try {
+						// 从指定的 scope 下创建 bean
 						Object scopedInstance = scope.get(beanName, () -> {
+							// 加载前置处理
 							beforePrototypeCreation(beanName);
 							try {
+								// 创建 Bean 对象
 								return createBean(beanName, mbd, args);
-							}
-							finally {
+							} finally {
+								// 加载后缀处理
 								afterPrototypeCreation(beanName);
 							}
 						});
+						// 从 Bean 实例中获取对象
 						bean = getObjectForBeanInstance(scopedInstance, name, beanName, mbd);
-					}
-					catch (IllegalStateException ex) {
+					} catch (IllegalStateException ex) {
 						throw new BeanCreationException(beanName,
 								"Scope '" + scopeName + "' is not active for the current thread; consider " +
-								"defining a scoped proxy for this bean if you intend to refer to it from a singleton",
+										"defining a scoped proxy for this bean if you intend to refer to it from a singleton",
 								ex);
 					}
 				}
-			}
-			catch (BeansException ex) {
+			} catch (BeansException ex) {
 				cleanupAfterBeanCreationFailure(beanName);
 				throw ex;
 			}
 		}
-
+// 检查需要的类型是否符合 bean 的实际类型
 		// Check if required type matches the type of the actual bean instance.
 		if (requiredType != null && !requiredType.isInstance(bean)) {
 			try {
+				// 执行转换
 				T convertedBean = getTypeConverter().convertIfNecessary(bean, requiredType);
+				// 转换失败，抛出 BeanNotOfRequiredTypeException 异常
 				if (convertedBean == null) {
 					throw new BeanNotOfRequiredTypeException(name, requiredType, bean.getClass());
 				}
 				return convertedBean;
-			}
-			catch (TypeMismatchException ex) {
+			} catch (TypeMismatchException ex) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Failed to convert bean '" + name + "' to required type '" +
 							ClassUtils.getQualifiedName(requiredType) + "'", ex);
@@ -444,8 +501,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		if (beanInstance != null) {
 			if (beanInstance instanceof FactoryBean) {
 				return (BeanFactoryUtils.isFactoryDereference(name) || ((FactoryBean<?>) beanInstance).isSingleton());
-			}
-			else {
+			} else {
 				return !BeanFactoryUtils.isFactoryDereference(name);
 			}
 		}
@@ -467,12 +523,10 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				}
 				FactoryBean<?> factoryBean = (FactoryBean<?>) getBean(FACTORY_BEAN_PREFIX + beanName);
 				return factoryBean.isSingleton();
-			}
-			else {
+			} else {
 				return !BeanFactoryUtils.isFactoryDereference(name);
 			}
-		}
-		else {
+		} else {
 			return false;
 		}
 	}
@@ -502,15 +556,13 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			final FactoryBean<?> fb = (FactoryBean<?>) getBean(FACTORY_BEAN_PREFIX + beanName);
 			if (System.getSecurityManager() != null) {
 				return AccessController.doPrivileged((PrivilegedAction<Boolean>) () ->
-						((fb instanceof SmartFactoryBean && ((SmartFactoryBean<?>) fb).isPrototype()) || !fb.isSingleton()),
+								((fb instanceof SmartFactoryBean && ((SmartFactoryBean<?>) fb).isPrototype()) || !fb.isSingleton()),
 						getAccessControlContext());
-			}
-			else {
+			} else {
 				return ((fb instanceof SmartFactoryBean && ((SmartFactoryBean<?>) fb).isPrototype()) ||
 						!fb.isSingleton());
 			}
-		}
-		else {
+		} else {
 			return false;
 		}
 	}
@@ -526,17 +578,14 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				if (!BeanFactoryUtils.isFactoryDereference(name)) {
 					Class<?> type = getTypeForFactoryBean((FactoryBean<?>) beanInstance);
 					return (type != null && typeToMatch.isAssignableFrom(type));
-				}
-				else {
+				} else {
 					return typeToMatch.isInstance(beanInstance);
 				}
-			}
-			else if (!BeanFactoryUtils.isFactoryDereference(name)) {
+			} else if (!BeanFactoryUtils.isFactoryDereference(name)) {
 				if (typeToMatch.isInstance(beanInstance)) {
 					// Direct match for exposed instance?
 					return true;
-				}
-				else if (typeToMatch.hasGenerics() && containsBeanDefinition(beanName)) {
+				} else if (typeToMatch.hasGenerics() && containsBeanDefinition(beanName)) {
 					// Generics potentially only match on the target class, not on the proxy...
 					RootBeanDefinition mbd = getMergedLocalBeanDefinition(beanName);
 					Class<?> targetType = mbd.getTargetType();
@@ -558,8 +607,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				}
 			}
 			return false;
-		}
-		else if (containsSingleton(beanName) && !containsBeanDefinition(beanName)) {
+		} else if (containsSingleton(beanName) && !containsBeanDefinition(beanName)) {
 			// null instance registered
 			return false;
 		}
@@ -579,7 +627,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			classToMatch = FactoryBean.class;
 		}
 		Class<?>[] typesToMatch = (FactoryBean.class == classToMatch ?
-				new Class<?>[] {classToMatch} : new Class<?>[] {FactoryBean.class, classToMatch});
+				new Class<?>[]{classToMatch} : new Class<?>[]{FactoryBean.class, classToMatch});
 
 		// Check decorated bean definition, if any: We assume it'll be easier
 		// to determine the decorated bean's type than the proxy's type.
@@ -606,8 +654,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					return false;
 				}
 			}
-		}
-		else if (BeanFactoryUtils.isFactoryDereference(name)) {
+		} else if (BeanFactoryUtils.isFactoryDereference(name)) {
 			// Special case: A SmartInstantiationAwareBeanPostProcessor returned a non-FactoryBean
 			// type but we nevertheless are being asked to dereference a FactoryBean...
 			// Let's check the original bean class and proceed with it if it is a FactoryBean.
@@ -642,8 +689,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		if (beanInstance != null && beanInstance.getClass() != NullBean.class) {
 			if (beanInstance instanceof FactoryBean && !BeanFactoryUtils.isFactoryDereference(name)) {
 				return getTypeForFactoryBean((FactoryBean<?>) beanInstance);
-			}
-			else {
+			} else {
 				return beanInstance.getClass();
 			}
 		}
@@ -675,12 +721,10 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			if (!BeanFactoryUtils.isFactoryDereference(name)) {
 				// If it's a FactoryBean, we want to look at what it creates, not at the factory class.
 				return getTypeForFactoryBean(beanName, mbd);
-			}
-			else {
+			} else {
 				return beanClass;
 			}
-		}
-		else {
+		} else {
 			return (!BeanFactoryUtils.isFactoryDereference(name) ? beanClass : null);
 		}
 	}
@@ -837,6 +881,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 	/**
 	 * Return the custom TypeConverter to use, if any.
+	 *
 	 * @return the custom TypeConverter, or {@code null} if none specified
 	 */
 	@Nullable
@@ -849,8 +894,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		TypeConverter customConverter = getCustomTypeConverter();
 		if (customConverter != null) {
 			return customConverter;
-		}
-		else {
+		} else {
 			// Build default TypeConverter, registering custom editors.
 			SimpleTypeConverter typeConverter = new SimpleTypeConverter();
 			typeConverter.setConversionService(getConversionService());
@@ -918,6 +962,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	/**
 	 * Return whether this factory holds a InstantiationAwareBeanPostProcessor
 	 * that will get applied to singleton beans on shutdown.
+	 *
 	 * @see #addBeanPostProcessor
 	 * @see org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor
 	 */
@@ -928,6 +973,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	/**
 	 * Return whether this factory holds a DestructionAwareBeanPostProcessor
 	 * that will get applied to singleton beans on shutdown.
+	 *
 	 * @see #addBeanPostProcessor
 	 * @see org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor
 	 */
@@ -947,8 +993,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			if (logger.isInfoEnabled()) {
 				logger.info("Replacing scope '" + scopeName + "' from [" + previous + "] to [" + scope + "]");
 			}
-		}
-		else {
+		} else {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Registering scope '" + scopeName + "' with implementation [" + scope + "]");
 			}
@@ -1006,8 +1051,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					otherAbstractFactory.hasDestructionAwareBeanPostProcessors;
 			this.scopes.putAll(otherAbstractFactory.scopes);
 			this.securityContextProvider = otherAbstractFactory.securityContextProvider;
-		}
-		else {
+		} else {
 			setTypeConverter(otherFactory.getTypeConverter());
 			String[] otherScopeNames = otherFactory.getRegisteredScopeNames();
 			for (String scopeName : otherScopeNames) {
@@ -1021,11 +1065,12 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * merging a child bean definition with its parent if necessary.
 	 * <p>This {@code getMergedBeanDefinition} considers bean definition
 	 * in ancestors as well.
+	 *
 	 * @param name the name of the bean to retrieve the merged definition for
-	 * (may be an alias)
+	 *             (may be an alias)
 	 * @return a (potentially merged) RootBeanDefinition for the given bean
 	 * @throws NoSuchBeanDefinitionException if there is no bean with the given name
-	 * @throws BeanDefinitionStoreException in case of an invalid bean definition
+	 * @throws BeanDefinitionStoreException  in case of an invalid bean definition
 	 */
 	@Override
 	public BeanDefinition getMergedBeanDefinition(String name) throws BeansException {
@@ -1061,9 +1106,13 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	/**
 	 * Return whether the specified prototype bean is currently in creation
 	 * (within the current thread).
+	 *
 	 * @param beanName the name of the bean
 	 */
 	protected boolean isPrototypeCurrentlyInCreation(String beanName) {
+		// 其实检测逻辑和单例模式一样，一个“集合”存放着正在创建的 Bean ，
+		// 从该集合中进行判断即可，只不过单例模式的“集合”为 Set ，
+		// 而原型模式的则是 ThreadLocal 。prototypesCurrentlyInCreation 定义如下：
 		Object curVal = this.prototypesCurrentlyInCreation.get();
 		return (curVal != null &&
 				(curVal.equals(beanName) || (curVal instanceof Set && ((Set<?>) curVal).contains(beanName))));
@@ -1072,6 +1121,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	/**
 	 * Callback before prototype creation.
 	 * <p>The default implementation register the prototype as currently in creation.
+	 *
 	 * @param beanName the name of the prototype about to be created
 	 * @see #isPrototypeCurrentlyInCreation
 	 */
@@ -1080,14 +1130,12 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		Object curVal = this.prototypesCurrentlyInCreation.get();
 		if (curVal == null) {
 			this.prototypesCurrentlyInCreation.set(beanName);
-		}
-		else if (curVal instanceof String) {
+		} else if (curVal instanceof String) {
 			Set<String> beanNameSet = new HashSet<>(2);
 			beanNameSet.add((String) curVal);
 			beanNameSet.add(beanName);
 			this.prototypesCurrentlyInCreation.set(beanNameSet);
-		}
-		else {
+		} else {
 			Set<String> beanNameSet = (Set<String>) curVal;
 			beanNameSet.add(beanName);
 		}
@@ -1096,6 +1144,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	/**
 	 * Callback after prototype creation.
 	 * <p>The default implementation marks the prototype as not in creation anymore.
+	 *
 	 * @param beanName the name of the prototype that has been created
 	 * @see #isPrototypeCurrentlyInCreation
 	 */
@@ -1104,8 +1153,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		Object curVal = this.prototypesCurrentlyInCreation.get();
 		if (curVal instanceof String) {
 			this.prototypesCurrentlyInCreation.remove();
-		}
-		else if (curVal instanceof Set) {
+		} else if (curVal instanceof Set) {
 			Set<String> beanNameSet = (Set<String>) curVal;
 			beanNameSet.remove(beanName);
 			if (beanNameSet.isEmpty()) {
@@ -1122,9 +1170,10 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	/**
 	 * Destroy the given bean instance (usually a prototype instance
 	 * obtained from this factory) according to the given bean definition.
+	 *
 	 * @param beanName the name of the bean definition
-	 * @param bean the bean instance to destroy
-	 * @param mbd the merged bean definition
+	 * @param bean     the bean instance to destroy
+	 * @param mbd      the merged bean definition
 	 */
 	protected void destroyBean(String beanName, Object bean, RootBeanDefinition mbd) {
 		new DisposableBeanAdapter(bean, beanName, mbd, getBeanPostProcessors(), getAccessControlContext()).destroy();
@@ -1156,20 +1205,29 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	/**
 	 * Return the bean name, stripping out the factory dereference prefix if necessary,
 	 * and resolving aliases to canonical names.
+	 *
 	 * @param name the user-specified name
 	 * @return the transformed bean name
 	 */
 	protected String transformedBeanName(String name) {
+//		BeanFactoryUtils。transformedBeanName(String name) 方法，
+//		去除 FactoryBean 的修饰符。代码如下：
+//		调用 #canonicalName(String name) 方法，取指定的 alias 所表示的最终 beanName 。
 		return canonicalName(BeanFactoryUtils.transformedBeanName(name));
 	}
 
 	/**
 	 * Determine the original bean name, resolving locally defined aliases to canonical names.
+	 *
 	 * @param name the user-specified name
 	 * @return the original bean name
 	 */
 	protected String originalBeanName(String name) {
+		//#transformedBeanName(String name) 方法，
+		// 是对 name 进行转换，获取真正的 beanName 。
 		String beanName = transformedBeanName(name);
+		//如果 name 是以 “&” 开头的，则加上 “&”
+		// ，因为在 #transformedBeanName(String name) 方法，将 “&” 去掉了，这里
 		if (name.startsWith(FACTORY_BEAN_PREFIX)) {
 			beanName = FACTORY_BEAN_PREFIX + beanName;
 		}
@@ -1182,6 +1240,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * and populate bean instances.
 	 * <p>The default implementation delegates to {@link #registerCustomEditors}.
 	 * Can be overridden in subclasses.
+	 *
 	 * @param bw the BeanWrapper to initialize
 	 */
 	protected void initBeanWrapper(BeanWrapper bw) {
@@ -1195,6 +1254,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * <p>To be called for BeanWrappers that will create and populate bean
 	 * instances, and for SimpleTypeConverter used for constructor argument
 	 * and factory method type conversion.
+	 *
 	 * @param registry the PropertyEditorRegistry to initialize
 	 */
 	protected void registerCustomEditors(PropertyEditorRegistry registry) {
@@ -1207,8 +1267,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			for (PropertyEditorRegistrar registrar : this.propertyEditorRegistrars) {
 				try {
 					registrar.registerCustomEditors(registry);
-				}
-				catch (BeanCreationException ex) {
+				} catch (BeanCreationException ex) {
 					Throwable rootCause = ex.getMostSpecificCause();
 					if (rootCause instanceof BeanCurrentlyInCreationException) {
 						BeanCreationException bce = (BeanCreationException) rootCause;
@@ -1237,25 +1296,33 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	/**
 	 * Return a merged RootBeanDefinition, traversing the parent bean definition
 	 * if the specified bean corresponds to a child bean definition.
+	 *
 	 * @param beanName the name of the bean to retrieve the merged definition for
 	 * @return a (potentially merged) RootBeanDefinition for the given bean
 	 * @throws NoSuchBeanDefinitionException if there is no bean with the given name
-	 * @throws BeanDefinitionStoreException in case of an invalid bean definition
+	 * @throws BeanDefinitionStoreException  in case of an invalid bean definition
 	 */
 	protected RootBeanDefinition getMergedLocalBeanDefinition(String beanName) throws BeansException {
 		// Quick check on the concurrent map first, with minimal locking.
+		// 快速从缓存中获取，如果不为空，则直接返回
 		RootBeanDefinition mbd = this.mergedBeanDefinitions.get(beanName);
 		if (mbd != null) {
 			return mbd;
 		}
+		// 获取 RootBeanDefinition，
+		// 如果返回的 BeanDefinition 是子类 bean 的话，则合并父类相关属性
+		// 首先，直接从 mergedBeanDefinitions 缓存中获取相应的 RootBeanDefinition 对象，如果存在则直接返回。
+		// 否则，调用 #getMergedBeanDefinition(String beanName, BeanDefinition bd) 方法，
+		//	获取 RootBeanDefinition 对象。若获取的 BeanDefinition 为子 BeanDefinition，则需要合并父类的相关属性。
 		return getMergedBeanDefinition(beanName, getBeanDefinition(beanName));
 	}
 
 	/**
 	 * Return a RootBeanDefinition for the given top-level bean, by merging with
 	 * the parent if the given bean's definition is a child bean definition.
+	 *
 	 * @param beanName the name of the bean definition
-	 * @param bd the original bean definition (Root/ChildBeanDefinition)
+	 * @param bd       the original bean definition (Root/ChildBeanDefinition)
 	 * @return a (potentially merged) RootBeanDefinition for the given bean
 	 * @throws BeanDefinitionStoreException in case of an invalid bean definition
 	 */
@@ -1268,10 +1335,11 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	/**
 	 * Return a RootBeanDefinition for the given bean, by merging with the
 	 * parent if the given bean's definition is a child bean definition.
-	 * @param beanName the name of the bean definition
-	 * @param bd the original bean definition (Root/ChildBeanDefinition)
+	 *
+	 * @param beanName     the name of the bean definition
+	 * @param bd           the original bean definition (Root/ChildBeanDefinition)
 	 * @param containingBd the containing bean definition in case of inner bean,
-	 * or {@code null} in case of a top-level bean
+	 *                     or {@code null} in case of a top-level bean
 	 * @return a (potentially merged) RootBeanDefinition for the given bean
 	 * @throws BeanDefinitionStoreException in case of an invalid bean definition
 	 */
@@ -1292,32 +1360,27 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					// Use copy of given root bean definition.
 					if (bd instanceof RootBeanDefinition) {
 						mbd = ((RootBeanDefinition) bd).cloneBeanDefinition();
-					}
-					else {
+					} else {
 						mbd = new RootBeanDefinition(bd);
 					}
-				}
-				else {
+				} else {
 					// Child bean definition: needs to be merged with parent.
 					BeanDefinition pbd;
 					try {
 						String parentBeanName = transformedBeanName(bd.getParentName());
 						if (!beanName.equals(parentBeanName)) {
 							pbd = getMergedBeanDefinition(parentBeanName);
-						}
-						else {
+						} else {
 							BeanFactory parent = getParentBeanFactory();
 							if (parent instanceof ConfigurableBeanFactory) {
 								pbd = ((ConfigurableBeanFactory) parent).getMergedBeanDefinition(parentBeanName);
-							}
-							else {
+							} else {
 								throw new NoSuchBeanDefinitionException(parentBeanName,
 										"Parent name '" + parentBeanName + "' is equal to bean name '" + beanName +
-										"': cannot be resolved without an AbstractBeanFactory parent");
+												"': cannot be resolved without an AbstractBeanFactory parent");
 							}
 						}
-					}
-					catch (NoSuchBeanDefinitionException ex) {
+					} catch (NoSuchBeanDefinitionException ex) {
 						throw new BeanDefinitionStoreException(bd.getResourceDescription(), beanName,
 								"Could not resolve parent bean definition '" + bd.getParentName() + "'", ex);
 					}
@@ -1353,9 +1416,10 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	/**
 	 * Check the given merged bean definition,
 	 * potentially throwing validation exceptions.
-	 * @param mbd the merged bean definition to check
+	 *
+	 * @param mbd      the merged bean definition to check
 	 * @param beanName the name of the bean
-	 * @param args the arguments for bean creation, if any
+	 * @param args     the arguments for bean creation, if any
 	 * @throws BeanDefinitionStoreException in case of validation failure
 	 */
 	protected void checkMergedBeanDefinition(RootBeanDefinition mbd, String beanName, @Nullable Object[] args)
@@ -1369,6 +1433,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	/**
 	 * Remove the merged bean definition for the specified bean,
 	 * recreating it on next access.
+	 *
 	 * @param beanName the bean name to clear the merged definition for
 	 */
 	protected void clearMergedBeanDefinition(String beanName) {
@@ -1381,6 +1446,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * <p>Typically triggered after changes to the original bean definitions,
 	 * e.g. after applying a {@code BeanFactoryPostProcessor}. Note that metadata
 	 * for beans which have already been created at this point will be kept around.
+	 *
 	 * @since 4.2
 	 */
 	public void clearMetadataCache() {
@@ -1391,10 +1457,11 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * Resolve the bean class for the specified bean definition,
 	 * resolving a bean class name into a Class reference (if necessary)
 	 * and storing the resolved Class in the bean definition for further use.
-	 * @param mbd the merged bean definition to determine the class for
-	 * @param beanName the name of the bean (for error handling purposes)
+	 *
+	 * @param mbd          the merged bean definition to determine the class for
+	 * @param beanName     the name of the bean (for error handling purposes)
 	 * @param typesToMatch the types to match in case of internal type matching purposes
-	 * (also signals that the returned {@code Class} will never be exposed to application code)
+	 *                     (also signals that the returned {@code Class} will never be exposed to application code)
 	 * @return the resolved bean class (or {@code null} if none)
 	 * @throws CannotLoadBeanClassException if we failed to load the class
 	 */
@@ -1408,20 +1475,16 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			}
 			if (System.getSecurityManager() != null) {
 				return AccessController.doPrivileged((PrivilegedExceptionAction<Class<?>>) () ->
-					doResolveBeanClass(mbd, typesToMatch), getAccessControlContext());
-			}
-			else {
+						doResolveBeanClass(mbd, typesToMatch), getAccessControlContext());
+			} else {
 				return doResolveBeanClass(mbd, typesToMatch);
 			}
-		}
-		catch (PrivilegedActionException pae) {
+		} catch (PrivilegedActionException pae) {
 			ClassNotFoundException ex = (ClassNotFoundException) pae.getException();
 			throw new CannotLoadBeanClassException(mbd.getResourceDescription(), beanName, mbd.getBeanClassName(), ex);
-		}
-		catch (ClassNotFoundException ex) {
+		} catch (ClassNotFoundException ex) {
 			throw new CannotLoadBeanClassException(mbd.getResourceDescription(), beanName, mbd.getBeanClassName(), ex);
-		}
-		catch (LinkageError err) {
+		} catch (LinkageError err) {
 			throw new CannotLoadBeanClassException(mbd.getResourceDescription(), beanName, mbd.getBeanClassName(), err);
 		}
 	}
@@ -1453,11 +1516,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				// A dynamically resolved expression, supported as of 4.2...
 				if (evaluated instanceof Class) {
 					return (Class<?>) evaluated;
-				}
-				else if (evaluated instanceof String) {
+				} else if (evaluated instanceof String) {
 					return ClassUtils.forName((String) evaluated, classLoaderToUse);
-				}
-				else {
+				} else {
 					throw new IllegalStateException("Invalid class name expression result: " + evaluated);
 				}
 			}
@@ -1473,7 +1534,8 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	/**
 	 * Evaluate the given String as contained in a bean definition,
 	 * potentially resolving it as an expression.
-	 * @param value the value to check
+	 *
+	 * @param value          the value to check
 	 * @param beanDefinition the bean definition that the value comes from
 	 * @return the resolved value
 	 * @see #setBeanExpressionResolver
@@ -1504,10 +1566,11 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * handle factory methods and InstantiationAwareBeanPostProcessors.
 	 * It only predicts the bean type correctly for a standard bean.
 	 * To be overridden in subclasses, applying more sophisticated type detection.
-	 * @param beanName the name of the bean
-	 * @param mbd the merged bean definition to determine the type for
+	 *
+	 * @param beanName     the name of the bean
+	 * @param mbd          the merged bean definition to determine the type for
 	 * @param typesToMatch the types to match in case of internal type matching purposes
-	 * (also signals that the returned {@code Class} will never be exposed to application code)
+	 *                     (also signals that the returned {@code Class} will never be exposed to application code)
 	 * @return the type of the bean, or {@code null} if not predictable
 	 */
 	@Nullable
@@ -1524,8 +1587,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 	/**
 	 * Check whether the given bean is defined as a {@link FactoryBean}.
+	 *
 	 * @param beanName the name of the bean
-	 * @param mbd the corresponding bean definition
+	 * @param mbd      the corresponding bean definition
 	 */
 	protected boolean isFactoryBean(String beanName, RootBeanDefinition mbd) {
 		Class<?> beanType = predictBeanType(beanName, mbd, FactoryBean.class);
@@ -1541,8 +1605,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * trying whether its {@code getObjectType} method already returns a type.
 	 * If no type found, a full FactoryBean creation as performed by this implementation
 	 * should be used as fallback.
+	 *
 	 * @param beanName the name of the bean
-	 * @param mbd the merged bean definition for the bean
+	 * @param mbd      the merged bean definition for the bean
 	 * @return the type for the bean if determinable, or {@code null} otherwise
 	 * @see org.springframework.beans.factory.FactoryBean#getObjectType()
 	 * @see #getBean(String)
@@ -1555,19 +1620,16 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		try {
 			FactoryBean<?> factoryBean = doGetBean(FACTORY_BEAN_PREFIX + beanName, FactoryBean.class, null, true);
 			return getTypeForFactoryBean(factoryBean);
-		}
-		catch (BeanCreationException ex) {
+		} catch (BeanCreationException ex) {
 			if (ex.contains(BeanCurrentlyInCreationException.class)) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Bean currently in creation on FactoryBean type check: " + ex);
 				}
-			}
-			else if (mbd.isLazyInit()) {
+			} else if (mbd.isLazyInit()) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Bean creation exception on lazy FactoryBean type check: " + ex);
 				}
-			}
-			else {
+			} else {
 				if (logger.isWarnEnabled()) {
 					logger.warn("Bean creation exception on non-lazy FactoryBean type check: " + ex);
 				}
@@ -1581,15 +1643,21 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * Mark the specified bean as already created (or about to be created).
 	 * <p>This allows the bean factory to optimize its caching for repeated
 	 * creation of the specified bean.
+	 *
 	 * @param beanName the name of the bean
 	 */
 	protected void markBeanAsCreated(String beanName) {
+		// 没有创建
 		if (!this.alreadyCreated.contains(beanName)) {
+			// 加上全局锁
 			synchronized (this.mergedBeanDefinitions) {
+				// 再次检查一次：DCL 双检查模式
 				if (!this.alreadyCreated.contains(beanName)) {
 					// Let the bean definition get re-merged now that we're actually creating
 					// the bean... just in case some of its metadata changed in the meantime.
+					// 从 mergedBeanDefinitions 中删除 beanName，并在下次访问时重新创建它。
 					clearMergedBeanDefinition(beanName);
+					// 添加到已创建 bean 集合中
 					this.alreadyCreated.add(beanName);
 				}
 			}
@@ -1598,6 +1666,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 	/**
 	 * Perform appropriate cleanup of cached metadata after bean creation failed.
+	 *
 	 * @param beanName the name of the bean
 	 */
 	protected void cleanupAfterBeanCreationFailure(String beanName) {
@@ -1609,6 +1678,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	/**
 	 * Determine whether the specified bean is eligible for having
 	 * its bean definition metadata cached.
+	 *
 	 * @param beanName the name of the bean
 	 * @return {@code true} if the bean's metadata may be cached
 	 * at this point already
@@ -1620,6 +1690,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	/**
 	 * Remove the singleton instance (if any) for the given bean name,
 	 * but only if it hasn't been used for other purposes than type checking.
+	 *
 	 * @param beanName the name of the bean
 	 * @return {@code true} if actually removed, {@code false} otherwise
 	 */
@@ -1627,8 +1698,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		if (!this.alreadyCreated.contains(beanName)) {
 			removeSingleton(beanName);
 			return true;
-		}
-		else {
+		} else {
 			return false;
 		}
 	}
@@ -1636,8 +1706,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	/**
 	 * Check whether this factory's bean creation phase already started,
 	 * i.e. whether any bean has been marked as created in the meantime.
-	 * @since 4.2.2
+	 *
 	 * @see #markBeanAsCreated
+	 * @since 4.2.2
 	 */
 	protected boolean hasBeanCreationStarted() {
 		return !this.alreadyCreated.isEmpty();
@@ -1646,20 +1717,27 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	/**
 	 * Get the object for the given bean instance, either the bean
 	 * instance itself or its created object in case of a FactoryBean.
+	 *
 	 * @param beanInstance the shared bean instance
-	 * @param name name that may include factory dereference prefix
-	 * @param beanName the canonical bean name
-	 * @param mbd the merged bean definition
+	 * @param name         name that may include factory dereference prefix
+	 * @param beanName     the canonical bean name
+	 * @param mbd          the merged bean definition
 	 * @return the object to expose for the bean
 	 */
+//	第一种，当该实例对象为非 FactoryBean 类型，直接返回给定的 Bean 实例对象 beanInstance 。
+//	第二种，当该实例对象为FactoryBean 类型，从 FactoryBean ( beanInstance ) 中，获取 Bean 实例对象。
+//	第二种，通过 #getObjectFromFactoryBean(FactoryBean<?> factory, String beanName, boolean shouldPostProcess) 方法来实现。代码如下：
 	protected Object getObjectForBeanInstance(
 			Object beanInstance, String name, String beanName, @Nullable RootBeanDefinition mbd) {
 
 		// Don't let calling code try to dereference the factory if the bean isn't a factory.
+		// <1> 若为工厂类引用（name 以 & 开头）
 		if (BeanFactoryUtils.isFactoryDereference(name)) {
+			// 如果是 NullBean，则直接返回
 			if (beanInstance instanceof NullBean) {
 				return beanInstance;
 			}
+			// 如果 beanInstance 不是 FactoryBean 类型，则抛出异常
 			if (!(beanInstance instanceof FactoryBean)) {
 				throw new BeanIsNotAFactoryException(beanName, beanInstance.getClass());
 			}
@@ -1668,22 +1746,32 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		// Now we have the bean instance, which may be a normal bean or a FactoryBean.
 		// If it's a FactoryBean, we use it to create a bean instance, unless the
 		// caller actually wants a reference to the factory.
+
+		// 到这里我们就有了一个 Bean 实例，当然该实例可能是会是是一个正常的 bean 又或者是一个 FactoryBean
+		// 如果是 FactoryBean，我们则创建该 Bean
 		if (!(beanInstance instanceof FactoryBean) || BeanFactoryUtils.isFactoryDereference(name)) {
 			return beanInstance;
 		}
 
 		Object object = null;
+		// <3> 若 BeanDefinition 为 null，则从缓存中加载 Bean 对象
 		if (mbd == null) {
 			object = getCachedObjectForFactoryBean(beanName);
 		}
+		// 若 object 依然为空，则可以确认，beanInstance 一定是 FactoryBean 。从而，使用 FactoryBean 获得 Bean 对象
 		if (object == null) {
 			// Return bean instance from factory.
 			FactoryBean<?> factory = (FactoryBean<?>) beanInstance;
 			// Caches object obtained from FactoryBean if it is a singleton.
+			// 检测是否定义 beanName
 			if (mbd == null && containsBeanDefinition(beanName)) {
+				// 将存储 XML 配置文件的 GenericBeanDefinition 转换为 RootBeanDefinition，
+				// 如果指定 BeanName 是子 Bean 的话同时会合并父类的相关属性
 				mbd = getMergedLocalBeanDefinition(beanName);
 			}
+			// 是否是用户定义的，而不是应用程序本身定义的
 			boolean synthetic = (mbd != null && mbd.isSynthetic());
+			// 核心处理方法，使用 FactoryBean 获得 Bean 对象
 			object = getObjectFromFactoryBean(factory, beanName, !synthetic);
 		}
 		return object;
@@ -1693,6 +1781,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * Determine whether the given bean name is already in use within this factory,
 	 * i.e. whether there is a local bean or alias registered under this name or
 	 * an inner bean created with this name.
+	 *
 	 * @param beanName the name to check
 	 */
 	public boolean isBeanNameInUse(String beanName) {
@@ -1703,8 +1792,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * Determine whether the given bean requires destruction on shutdown.
 	 * <p>The default implementation checks the DisposableBean interface as well as
 	 * a specified destroy method and registered DestructionAwareBeanPostProcessors.
+	 *
 	 * @param bean the bean instance to check
-	 * @param mbd the corresponding bean definition
+	 * @param mbd  the corresponding bean definition
 	 * @see org.springframework.beans.factory.DisposableBean
 	 * @see AbstractBeanDefinition#getDestroyMethodName()
 	 * @see org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor
@@ -1719,9 +1809,10 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * Add the given bean to the list of disposable beans in this factory,
 	 * registering its DisposableBean interface and/or the given destroy method
 	 * to be called on factory shutdown (if applicable). Only applies to singletons.
+	 *
 	 * @param beanName the name of the bean
-	 * @param bean the bean instance
-	 * @param mbd the bean definition for the bean
+	 * @param bean     the bean instance
+	 * @param mbd      the bean definition for the bean
 	 * @see RootBeanDefinition#isSingleton
 	 * @see RootBeanDefinition#getDependsOn
 	 * @see #registerDisposableBean
@@ -1736,8 +1827,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				// DisposableBean interface, custom destroy method.
 				registerDisposableBean(beanName,
 						new DisposableBeanAdapter(bean, beanName, mbd, getBeanPostProcessors(), acc));
-			}
-			else {
+			} else {
 				// A bean with a custom scope...
 				Scope scope = this.scopes.get(mbd.getScope());
 				if (scope == null) {
@@ -1764,6 +1854,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * just amounts to a local hash lookup: The operation is therefore part of the
 	 * public interface there. The same implementation can serve for both this
 	 * template method and the public interface method in that case.
+	 *
 	 * @param beanName the name of the bean to look for
 	 * @return if this bean factory contains a bean definition with the given name
 	 * @see #containsBean
@@ -1781,11 +1872,11 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * just amounts to a local hash lookup: The operation is therefore part of the
 	 * public interface there. The same implementation can serve for both this
 	 * template method and the public interface method in that case.
+	 *
 	 * @param beanName the name of the bean to find a definition for
 	 * @return the BeanDefinition for this prototype name (never {@code null})
-	 * @throws org.springframework.beans.factory.NoSuchBeanDefinitionException
-	 * if the bean definition cannot be resolved
-	 * @throws BeansException in case of errors
+	 * @throws org.springframework.beans.factory.NoSuchBeanDefinitionException if the bean definition cannot be resolved
+	 * @throws BeansException                                                  in case of errors
 	 * @see RootBeanDefinition
 	 * @see ChildBeanDefinition
 	 * @see org.springframework.beans.factory.config.ConfigurableListableBeanFactory#getBeanDefinition
@@ -1797,12 +1888,23 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * The bean definition will already have been merged with the parent definition
 	 * in case of a child definition.
 	 * <p>All bean retrieval methods delegate to this method for actual bean creation.
+	 *
 	 * @param beanName the name of the bean
-	 * @param mbd the merged bean definition for the bean
-	 * @param args explicit arguments to use for constructor or factory method invocation
+	 * @param mbd      the merged bean definition for the bean
+	 * @param args     explicit arguments to use for constructor or factory method invocation
 	 * @return a new instance of the bean
 	 * @throws BeanCreationException if the bean could not be created
+	 *                               <p>
+	 *                               <p>
+	 *该方法定义在 AbstractBeanFactory 中，其含义是根据给定的 BeanDefinition 和 args 实例化一个 Bean 对象。
+	 *如果该 BeanDefinition 存在父类，则该 BeanDefinition 已经合并了父类的属性。
+	 *所有 Bean 实例的创建，都会委托给该方法实现。
+	 *该方法接受三个方法参数：
+	 *beanName ：bean 的名字。
+	 *mbd ：已经合并了父类属性的（如果有的话）BeanDefinition 对象。
+	 *args ：用于构造函数或者工厂方法创建 Bean 实例对象的参数。
 	 */
+
 	protected abstract Object createBean(String beanName, RootBeanDefinition mbd, @Nullable Object[] args)
 			throws BeanCreationException;
 

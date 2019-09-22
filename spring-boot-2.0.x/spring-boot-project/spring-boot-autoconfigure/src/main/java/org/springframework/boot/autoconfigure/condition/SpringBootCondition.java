@@ -31,6 +31,7 @@ import org.springframework.util.StringUtils;
 /**
  * Base of all {@link Condition} implementations used with Spring Boot. Provides sensible
  * logging to help the user diagnose what classes are loaded.
+ * 实现 Condition 接口，Spring Boot Condition 的抽象基类，主要用于提供相应的日志，帮助开发者判断哪些被进行加载
  *
  * @author Phillip Webb
  * @author Greg Turnquist
@@ -42,29 +43,38 @@ public abstract class SpringBootCondition implements Condition {
 
 	@Override
 	public final boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+		// <1> 获得注解的是方法名还是类名
 		String classOrMethodName = getClassOrMethodName(metadata);
 		try {
+			// <2> 条件匹配结果
+			//#getMatchOutcome(ConditionContext context, AnnotatedTypeMetadata metadata) 抽象方法，执行匹配，返回匹配结果。
+			//这是一个抽象方法，由子类进行实现。
+			//org.springframework.boot.autoconfigure.condition.ConditionOutcome ，匹配结果。
+			//org.springframework.boot.autoconfigure.condition.ConditionMessage ，匹配消息。
 			ConditionOutcome outcome = getMatchOutcome(context, metadata);
+			// <3> 打印结果
 			logOutcome(classOrMethodName, outcome);
+			// <4> 记录
 			recordEvaluation(context, classOrMethodName, outcome);
+			// <5> 返回是否匹配
 			return outcome.isMatch();
-		}
-		catch (NoClassDefFoundError ex) {
+		} catch (NoClassDefFoundError ex) {
 			throw new IllegalStateException("Could not evaluate condition on " + classOrMethodName + " due to "
 					+ ex.getMessage() + " not " + "found. Make sure your own configuration does not rely on "
 					+ "that class. This can also happen if you are "
 					+ "@ComponentScanning a springframework package (e.g. if you "
 					+ "put a @ComponentScan in the default package by mistake)", ex);
-		}
-		catch (RuntimeException ex) {
+		} catch (RuntimeException ex) {
 			throw new IllegalStateException("Error processing condition on " + getName(metadata), ex);
 		}
 	}
 
 	private String getName(AnnotatedTypeMetadata metadata) {
+		// 类
 		if (metadata instanceof AnnotationMetadata) {
 			return ((AnnotationMetadata) metadata).getClassName();
 		}
+		// 方法
 		if (metadata instanceof MethodMetadata) {
 			MethodMetadata methodMetadata = (MethodMetadata) metadata;
 			return methodMetadata.getDeclaringClassName() + "." + methodMetadata.getMethodName();
@@ -110,7 +120,8 @@ public abstract class SpringBootCondition implements Condition {
 
 	/**
 	 * Determine the outcome of the match along with suitable log output.
-	 * @param context the condition context
+	 *
+	 * @param context  the condition context
 	 * @param metadata the annotation metadata
 	 * @return the condition outcome
 	 */
@@ -118,14 +129,17 @@ public abstract class SpringBootCondition implements Condition {
 
 	/**
 	 * Return true if any of the specified conditions match.
-	 * @param context the context
-	 * @param metadata the annotation meta-data
+	 * 判断是否匹配指定的 Condition 们中的任一一个
+	 * @param context    the context
+	 * @param metadata   the annotation meta-data
 	 * @param conditions conditions to test
 	 * @return {@code true} if any condition matches.
 	 */
 	protected final boolean anyMatches(ConditionContext context, AnnotatedTypeMetadata metadata,
-			Condition... conditions) {
+									   Condition... conditions) {
+		// 遍历 Condition
 		for (Condition condition : conditions) {
+			// 执行是否匹配
 			if (matches(context, metadata, condition)) {
 				return true;
 			}
@@ -135,13 +149,15 @@ public abstract class SpringBootCondition implements Condition {
 
 	/**
 	 * Return true if any of the specified condition matches.
-	 * @param context the context
-	 * @param metadata the annotation meta-data
+	 *
+	 * @param context   the context
+	 * @param metadata  the annotation meta-data
 	 * @param condition condition to test
 	 * @return {@code true} if the condition matches.
 	 */
 	protected final boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata, Condition condition) {
 		if (condition instanceof SpringBootCondition) {
+			// 如果是 SpringBootCondition 类型，执行 SpringBootCondition 的直接匹配方法（无需日志）
 			return ((SpringBootCondition) condition).getMatchOutcome(context, metadata).isMatch();
 		}
 		return condition.matches(context, metadata);

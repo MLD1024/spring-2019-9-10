@@ -53,6 +53,11 @@ public interface AutoConfigurationImportFilter {
 	 * {@code autoConfigurationClasses} parameter. Entries containing {@code false} will
 	 * not be imported.
 	 */
+
+	//	将传入的 autoConfigurationClasses 配置类们，根据 autoConfigurationMetadata 的元数据（主要是注解信息），进行匹配，
+	//	判断是否需要引入，然后返回的 boolean[] 结果。
+	//	并且，boolean[] 结果和 autoConfigurationClasses 配置类们是一一对应的关系噢。
+	//	假设 autoConfigurationClasses[0] 对应的 boolean[0] 为 false ，表示无需引入，反之则需要引入。
 	boolean[] match(String[] autoConfigurationClasses, AutoConfigurationMetadata autoConfigurationMetadata);
 
 }
