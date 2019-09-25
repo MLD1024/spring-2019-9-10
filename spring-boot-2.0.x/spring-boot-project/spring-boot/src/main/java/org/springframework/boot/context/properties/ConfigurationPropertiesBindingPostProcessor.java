@@ -84,20 +84,27 @@ public class ConfigurationPropertiesBindingPostProcessor
 
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+		// <1> 获得 Bean 上的 @ConfigurationProperties 属性
 		ConfigurationProperties annotation = getAnnotation(bean, beanName, ConfigurationProperties.class);
 		if (annotation != null) {
+			// <2> 将配置文件注入到 `@ConfigurationProperties` 注解的 Bean 的属性中
 			bind(bean, beanName, annotation);
 		}
 		return bean;
 	}
 
 	private void bind(Object bean, String beanName, ConfigurationProperties annotation) {
+		// <2.1> 解析 Bean 的类型
 		ResolvableType type = getBeanType(bean, beanName);
+		// <2.2> 获得 Bean 上的 @Validated 注解
 		Validated validated = getAnnotation(bean, beanName, Validated.class);
+		// <2.3> 创建 Annotation 数组
 		Annotation[] annotations = (validated != null) ? new Annotation[] { annotation, validated }
 				: new Annotation[] { annotation };
+		// <2.4> 创建 Bindable 对象
 		Bindable<?> target = Bindable.of(type).withExistingValue(bean).withAnnotations(annotations);
 		try {
+			// <2.5> 将配置文件注入到 `@ConfigurationProperties` 注解的 Bean 的属性中
 			this.configurationPropertiesBinder.bind(target);
 		}
 		catch (Exception ex) {
@@ -106,15 +113,20 @@ public class ConfigurationPropertiesBindingPostProcessor
 	}
 
 	private ResolvableType getBeanType(Object bean, String beanName) {
+		// 获得 beanName 对应的工厂方法
 		Method factoryMethod = this.beanFactoryMetadata.findFactoryMethod(beanName);
+		// 情况一：如果是，说明是 Configuration 类创建的 Bean 对象
 		if (factoryMethod != null) {
 			return ResolvableType.forMethodReturnType(factoryMethod);
 		}
+		// 情况二：如果否，说明是普通的类创建的 Bean 对象
 		return ResolvableType.forClass(bean.getClass());
 	}
 
 	private <A extends Annotation> A getAnnotation(Object bean, String beanName, Class<A> type) {
+		// 获得 Bean 上的注解
 		A annotation = this.beanFactoryMetadata.findFactoryAnnotation(beanName, type);
+		// 如果获得不到，则获得 Bean 对应的 Class 上的注解
 		if (annotation == null) {
 			annotation = AnnotationUtils.findAnnotation(bean.getClass(), type);
 		}

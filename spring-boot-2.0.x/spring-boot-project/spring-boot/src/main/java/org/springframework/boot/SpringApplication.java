@@ -196,6 +196,9 @@ public class SpringApplication {
 
 	private Set<String> sources = new LinkedHashSet<>();
 
+	/**
+	 * springboot 应用启动类
+	 */
 	private Class<?> mainApplicationClass;
 
 	private Banner.Mode bannerMode = Banner.Mode.CONSOLE;
@@ -303,7 +306,9 @@ public class SpringApplication {
 	 */
 	private Class<?> deduceMainApplicationClass() {
 		try {
+			// 获得当前 StackTraceElement 数组
 			StackTraceElement[] stackTrace = new RuntimeException().getStackTrace();
+			// 判断哪个执行了 main 方法
 			for (StackTraceElement stackTraceElement : stackTrace) {
 				if ("main".equals(stackTraceElement.getMethodName())) {
 					return Class.forName(stackTraceElement.getClassName());
@@ -328,7 +333,7 @@ public class SpringApplication {
 		stopWatch.start();
 		ConfigurableApplicationContext context = null;
 		Collection<SpringBootExceptionReporter> exceptionReporters = new ArrayList<>();
-		// <2> 配置 headless 属性
+		// <2> 配置 headless 属性 和 AWT 相关。
 		configureHeadlessProperty();
 		// 获得 SpringApplicationRunListener 的数组，并启动监听
 		SpringApplicationRunListeners listeners = getRunListeners(args);

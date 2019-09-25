@@ -56,39 +56,60 @@ import org.springframework.util.StringUtils;
  */
 class BeanDefinitionLoader {
 
+	/**
+	 * 来源的数组
+	 */
 	private final Object[] sources;
 
+	/**
+	 * 注解的 BeanDefinition 读取器
+	 */
 	private final AnnotatedBeanDefinitionReader annotatedReader;
 
+	/**
+	 * XML 的 BeanDefinition 读取器
+	 */
 	private final XmlBeanDefinitionReader xmlReader;
-
+	/**
+	 * Groovy 的 BeanDefinition 读取器
+	 */
 	private BeanDefinitionReader groovyReader;
-
+	/**
+	 * Classpath 的 BeanDefinition 扫描器
+	 */
 	private final ClassPathBeanDefinitionScanner scanner;
-
+	/**
+	 * 资源加载器
+	 */
 	private ResourceLoader resourceLoader;
 
 	/**
 	 * Create a new {@link BeanDefinitionLoader} that will load beans into the specified
 	 * {@link BeanDefinitionRegistry}.
+	 *
 	 * @param registry the bean definition registry that will contain the loaded beans
-	 * @param sources the bean sources
+	 * @param sources  the bean sources
 	 */
 	BeanDefinitionLoader(BeanDefinitionRegistry registry, Object... sources) {
 		Assert.notNull(registry, "Registry must not be null");
 		Assert.notEmpty(sources, "Sources must not be empty");
 		this.sources = sources;
+		// 创建AnnotatedBeanDefinitionReader 对象
 		this.annotatedReader = new AnnotatedBeanDefinitionReader(registry);
+		// 创建XmlBeanDefinitionReader 对象
 		this.xmlReader = new XmlBeanDefinitionReader(registry);
+		//创建 GroovyBeanDefinitionReader 对象
 		if (isGroovyPresent()) {
 			this.groovyReader = new GroovyBeanDefinitionReader(registry);
 		}
+		// 创建 ClassPathBeanDefinitionScanner 对象
 		this.scanner = new ClassPathBeanDefinitionScanner(registry);
 		this.scanner.addExcludeFilter(new ClassExcludeFilter(sources));
 	}
 
 	/**
 	 * Set the bean name generator to be used by the underlying readers and scanner.
+	 *
 	 * @param beanNameGenerator the bean name generator
 	 */
 	public void setBeanNameGenerator(BeanNameGenerator beanNameGenerator) {
@@ -99,6 +120,7 @@ class BeanDefinitionLoader {
 
 	/**
 	 * Set the resource loader to be used by the underlying readers and scanner.
+	 *
 	 * @param resourceLoader the resource loader
 	 */
 	public void setResourceLoader(ResourceLoader resourceLoader) {
@@ -109,6 +131,7 @@ class BeanDefinitionLoader {
 
 	/**
 	 * Set the environment to be used by the underlying readers and scanner.
+	 *
 	 * @param environment the environment
 	 */
 	public void setEnvironment(ConfigurableEnvironment environment) {
@@ -119,10 +142,12 @@ class BeanDefinitionLoader {
 
 	/**
 	 * Load the sources into the reader.
+	 *
 	 * @return the number of loaded beans
 	 */
 	public int load() {
 		int count = 0;
+		//  遍历 sources 数组，逐个加载
 		for (Object source : this.sources) {
 			count += load(source);
 		}
@@ -131,18 +156,23 @@ class BeanDefinitionLoader {
 
 	private int load(Object source) {
 		Assert.notNull(source, "Source must not be null");
+		// <1> 如果是 Class 类型，则使用 AnnotatedBeanDefinitionReader 执行加载
 		if (source instanceof Class<?>) {
 			return load((Class<?>) source);
 		}
+		// <2> 如果是 Resource 类型，则使用 XmlBeanDefinitionReader 执行加载
 		if (source instanceof Resource) {
 			return load((Resource) source);
 		}
+		// <3> 如果是 Package 类型，则使用 ClassPathBeanDefinitionScanner 执行加载
 		if (source instanceof Package) {
 			return load((Package) source);
 		}
+		// <4> 如果是 CharSequence 类型，则各种尝试去加载
 		if (source instanceof CharSequence) {
 			return load((CharSequence) source);
 		}
+		// <5> 无法处理的类型，抛出 IllegalArgumentException 异常
 		throw new IllegalArgumentException("Invalid source type " + source.getClass());
 	}
 
@@ -152,6 +182,7 @@ class BeanDefinitionLoader {
 			GroovyBeanDefinitionSource loader = BeanUtils.instantiateClass(source, GroovyBeanDefinitionSource.class);
 			load(loader);
 		}
+		// <1> 如果是 Component ，则执行注册
 		if (isComponent(source)) {
 			this.annotatedReader.register(source);
 			return 1;
@@ -176,20 +207,32 @@ class BeanDefinitionLoader {
 		return this.xmlReader.loadBeanDefinitions(source);
 	}
 
+	/**
+	 * ClassPathBeanDefinitionScanner
+	 * @param source
+	 * @return
+	 */
 	private int load(Package source) {
 		return this.scanner.scan(source.getName());
 	}
 
+	/**
+	 *  各种尝试加载
+	 * @param source
+	 * @return
+	 */
 	private int load(CharSequence source) {
+		// <1> 解析 source 。因为，有可能里面带有占位符。
 		String resolvedSource = this.xmlReader.getEnvironment().resolvePlaceholders(source.toString());
 		// Attempt as a Class
+		// <2> 尝试按照 Class 进行加载
 		try {
 			return load(ClassUtils.forName(resolvedSource, null));
-		}
-		catch (IllegalArgumentException | ClassNotFoundException ex) {
+		} catch (IllegalArgumentException | ClassNotFoundException ex) {
 			// swallow exception and continue
 		}
 		// Attempt as resources
+		// <3> 尝试按照 Resource 进行加载
 		Resource[] resources = findResources(resolvedSource);
 		int loadCount = 0;
 		boolean atLeastOneResourceExists = false;
@@ -203,10 +246,12 @@ class BeanDefinitionLoader {
 			return loadCount;
 		}
 		// Attempt as package
+		// <4> 尝试按照 Package 进行加载
 		Package packageResource = findPackage(resolvedSource);
 		if (packageResource != null) {
 			return load(packageResource);
 		}
+		// <5> 无法处理，抛出 IllegalArgumentException 异常
 		throw new IllegalArgumentException("Invalid source '" + resolvedSource + "'");
 	}
 
@@ -215,20 +260,23 @@ class BeanDefinitionLoader {
 	}
 
 	private Resource[] findResources(String source) {
+		// 创建 ResourceLoader 对象
 		ResourceLoader loader = (this.resourceLoader != null) ? this.resourceLoader
 				: new PathMatchingResourcePatternResolver();
 		try {
+			// 获得 Resource 数组
 			if (loader instanceof ResourcePatternResolver) {
 				return ((ResourcePatternResolver) loader).getResources(source);
 			}
-			return new Resource[] { loader.getResource(source) };
-		}
-		catch (IOException ex) {
+			// 获得 Resource 对象
+			return new Resource[]{loader.getResource(source)};
+		} catch (IOException ex) {
 			throw new IllegalStateException("Error reading source '" + source + "'");
 		}
 	}
 
 	private boolean isLoadCandidate(Resource resource) {
+		// 不存在，则返回 false
 		if (resource == null || !resource.exists()) {
 			return false;
 		}
@@ -241,8 +289,7 @@ class BeanDefinitionLoader {
 			if (path.indexOf('.') == -1) {
 				try {
 					return Package.getPackage(path) == null;
-				}
-				catch (Exception ex) {
+				} catch (Exception ex) {
 					// Ignore
 				}
 			}
@@ -251,27 +298,36 @@ class BeanDefinitionLoader {
 	}
 
 	private Package findPackage(CharSequence source) {
+		// <X> 获得 source 对应的 Package 。如果存在，则返回
 		Package pkg = Package.getPackage(source.toString());
 		if (pkg != null) {
 			return pkg;
 		}
 		try {
 			// Attempt to find a class in this package
+			//创建 ResourcePatternResolver 对象
 			ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(getClass().getClassLoader());
+			/// 尝试加载 source 目录下的 class 们
 			Resource[] resources = resolver
 					.getResources(ClassUtils.convertClassNameToResourcePath(source.toString()) + "/*.class");
+			// 遍历 resources 数组
 			for (Resource resource : resources) {
 				String className = StringUtils.stripFilenameExtension(resource.getFilename());
 				load(Class.forName(source.toString() + "." + className));
 				break;
 			}
-		}
-		catch (Exception ex) {
+		} catch (Exception ex) {
 			// swallow exception and continue
 		}
+		// 返回 Package
 		return Package.getPackage(source.toString());
 	}
 
+	/**
+	 * 因为 Configuration 类，上面有 @Configuration 注解，而 @Configuration 上，自带 @Component 注解，所以该方法返回 true 。
+	 * @param type
+	 * @return
+	 */
 	private boolean isComponent(Class<?> type) {
 		// This has to be a bit of a guess. The only way to be sure that this type is
 		// eligible is to make a bean definition out of it and try to instantiate it.
