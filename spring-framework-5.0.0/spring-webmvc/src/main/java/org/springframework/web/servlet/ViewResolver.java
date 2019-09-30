@@ -43,6 +43,7 @@ public interface ViewResolver {
 	 * return {@code null} if a view with the given name is not defined in it.
 	 * However, this is not required: Some ViewResolvers will always attempt
 	 * to build View objects with the given name, unable to return {@code null}
+	 * 根据视图名和国际化，获得最终的 View 对象
 	 * (rather throwing an exception when View creation failed).
 	 * @param viewName name of the view to resolve
 	 * @param locale Locale in which to resolve the view.

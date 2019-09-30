@@ -24,6 +24,7 @@ import org.springframework.lang.Nullable;
 /**
  * A strategy interface for retrieving and saving FlashMap instances.
  * See {@link FlashMap} for a general overview of flash attributes.
+ * FlashMap 管理器接口，负责重定向时，保存参数到临时存储中。代码如下：
  *
  * @author Rossen Stoyanchev
  * @since 3.1
@@ -38,6 +39,7 @@ public interface FlashMapManager {
 	 * <p>This method is invoked in the beginning of every request in contrast
 	 * to {@link #saveOutputFlashMap}, which is invoked only when there are
 	 * flash attributes to be saved - i.e. before a redirect.
+	 * 恢复参数，并将恢复过的和超时的参数从保存介质中删除
 	 * @param request the current request
 	 * @param response the current response
 	 * @return a FlashMap matching the current request or {@code null}
@@ -51,6 +53,7 @@ public interface FlashMapManager {
 	 * <p><strong>NOTE:</strong> Invoke this method prior to a redirect in order
 	 * to allow saving the FlashMap in the HTTP session or in a response
 	 * cookie before the response is committed.
+	 * 将参数保存起来
 	 * @param flashMap the FlashMap to save
 	 * @param request the current request
 	 * @param response the current response

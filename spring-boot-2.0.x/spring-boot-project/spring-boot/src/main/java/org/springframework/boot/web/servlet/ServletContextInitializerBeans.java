@@ -75,6 +75,7 @@ public class ServletContextInitializerBeans extends AbstractCollection<ServletCo
 
 	public ServletContextInitializerBeans(ListableBeanFactory beanFactory) {
 		this.initializers = new LinkedMultiValueMap<>();
+		// 第六层的入口
 		addServletContextInitializerBeans(beanFactory);
 		addAdaptableBeans(beanFactory);
 		List<ServletContextInitializer> sortedInitializers = this.initializers.values().stream()
