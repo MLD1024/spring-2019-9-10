@@ -244,6 +244,9 @@ public class SpringApplication {
 
 	private Map<String, Object> defaultProperties;
 
+	/**
+	 * 附加的profiles 数组
+	 */
 	private Set<String> additionalProfiles = new HashSet<>();
 
 	private boolean isCustomEnvironment = false;
@@ -282,10 +285,7 @@ public class SpringApplication {
 		Assert.notNull(primarySources, "PrimarySources must not be null");
 		// 主要的 Java Config 类的数组。在文初提供的示例，就是 MVCApplication 类。
 		this.primarySources = new LinkedHashSet<>(Arrays.asList(primarySources));
-		//调用 WebApplicationType#deduceFromClasspath() 方法，通过 classpath ，判断 Web 应用类型。
-		//具体的原理是，是否存在指定的类，已经在 WebApplicationType 上的方法添加了注释，直接瞅一眼就明白了。
-		//这个属性，在下面的 #createApplicationContext() 方法，将根据它的值（类型），
-		// 创建不同类型的 ApplicationContext 对象，即 Spring 容器的类型不同。
+		// 推断web应用类型
 		this.webApplicationType = WebApplicationType.deduceFromClasspath();
 		//  初始化 initializers   ApplicationContextInitializer 数组。
 		// 通过 {@link getSpringFactoriesInstances(Class<T> type)} 方法，

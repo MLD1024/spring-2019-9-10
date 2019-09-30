@@ -32,7 +32,7 @@ import org.springframework.core.env.Environment;
  * {@link org.springframework.core.Ordered Ordered} interface has been implemented or if
  * the {@link org.springframework.core.annotation.Order @Order} annotation is present and
  * to sort instances accordingly if so prior to invocation.
- *
+ * 在 Environment 加载完成之后，如果我们需要对其进行一些配置、增加一些自己的处理逻辑，那么请使用 EnvironmentPostProcessor
  * @author Andy Wilkinson
  * @author Stephane Nicoll
  * @since 1.3.0

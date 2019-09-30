@@ -26,7 +26,7 @@ import org.springframework.util.SystemPropertyUtils;
 
 /**
  * {@link PlaceholdersResolver} to resolve placeholders from {@link PropertySources}.
- *
+ *  实现 PropertySource 对应的值是占位符的解析器 。
  * @author Phillip Webb
  * @author Madhura Bhave
  * @since 2.0.0
@@ -53,6 +53,7 @@ public class PropertySourcesPlaceholdersResolver implements PlaceholdersResolver
 
 	@Override
 	public Object resolvePlaceholders(Object value) {
+		// 如果 value 是 String 类型，才是占位符
 		if (value != null && value instanceof String) {
 			return this.helper.replacePlaceholders((String) value, this::resolvePlaceholder);
 		}
@@ -61,6 +62,7 @@ public class PropertySourcesPlaceholdersResolver implements PlaceholdersResolver
 
 	protected String resolvePlaceholder(String placeholder) {
 		if (this.sources != null) {
+			// 遍历 sources 数组，逐个获得属性值。若获取到，则进行返回
 			for (PropertySource<?> source : this.sources) {
 				Object value = source.getProperty(placeholder);
 				if (value != null) {

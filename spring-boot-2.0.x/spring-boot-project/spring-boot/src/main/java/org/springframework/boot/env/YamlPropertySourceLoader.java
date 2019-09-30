@@ -43,14 +43,18 @@ public class YamlPropertySourceLoader implements PropertySourceLoader {
 
 	@Override
 	public List<PropertySource<?>> load(String name, Resource resource) throws IOException {
+		// <2> 如果不存在 org.yaml.snakeyaml.Yaml 类，说明没有引入 snakeyaml 依赖
 		if (!ClassUtils.isPresent("org.yaml.snakeyaml.Yaml", null)) {
 			throw new IllegalStateException(
 					"Attempted to load " + name + " but snakeyaml was not found on the classpath");
 		}
+		// <3.1> 加载配置，返回 Map 数组
 		List<Map<String, Object>> loaded = new OriginTrackedYamlLoader(resource).load();
+		// <3.2> 如果数组为空，返回空数组
 		if (loaded.isEmpty()) {
 			return Collections.emptyList();
 		}
+		// <3.3> 将 Map 数组，封装成 OriginTrackedMapPropertySource 数组，返回
 		List<PropertySource<?>> propertySources = new ArrayList<>(loaded.size());
 		for (int i = 0; i < loaded.size(); i++) {
 			String documentNumber = (loaded.size() != 1) ? " (document #" + i + ")" : "";

@@ -34,6 +34,7 @@ import org.springframework.core.io.support.SpringFactoriesLoader;
 public interface PropertySourceLoader {
 
 	/**
+	 * 获得可以处理的配置文件的后缀
 	 * Returns the file extensions that the loader supports (excluding the '.').
 	 * @return the file extensions
 	 */

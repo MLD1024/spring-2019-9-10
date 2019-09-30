@@ -75,6 +75,9 @@ public class SpringApplicationJsonEnvironmentPostProcessor implements Environmen
 
 	private static final Log logger = LogFactory.getLog(SpringApplicationJsonEnvironmentPostProcessor.class);
 
+	/**
+	 * 顺序
+	 */
 	private int order = DEFAULT_ORDER;
 
 	@Override
@@ -95,19 +98,21 @@ public class SpringApplicationJsonEnvironmentPostProcessor implements Environmen
 
 	private void processJson(ConfigurableEnvironment environment, JsonPropertyValue propertyValue) {
 		try {
+			// <1> 解析 json 字符串，成 Map 对象
 			JsonParser parser = JsonParserFactory.getJsonParser();
 			Map<String, Object> map = parser.parseMap(propertyValue.getJson());
+			// <2> 创建 JsonPropertySource 对象，添加到 environment 中
 			if (!map.isEmpty()) {
 				addJsonPropertySource(environment, new JsonPropertySource(propertyValue, flatten(map)));
 			}
-		}
-		catch (Exception ex) {
+		} catch (Exception ex) {
 			logger.warn("Cannot parse JSON for spring.application.json: " + propertyValue.getJson(), ex);
 		}
 	}
 
 	/**
 	 * Flatten the map keys using period separator.
+	 *
 	 * @param map the map that should be flattened
 	 * @return the flattened map
 	 */
@@ -124,38 +129,40 @@ public class SpringApplicationJsonEnvironmentPostProcessor implements Environmen
 
 	@SuppressWarnings("unchecked")
 	private void extract(String name, Map<String, Object> result, Object value) {
-		if (value instanceof Map) {
+		if (value instanceof Map) {  // 内嵌的 Map 格式
 			flatten(name, result, (Map<String, Object>) value);
-		}
-		else if (value instanceof Collection) {
+		} else if (value instanceof Collection) { // 内嵌的 Collection
 			int index = 0;
 			for (Object object : (Collection<Object>) value) {
 				extract(name + "[" + index + "]", result, object);
 				index++;
 			}
-		}
-		else {
+		} else {// 普通模式，添加到 result 中
 			result.put(name, value);
 		}
 	}
 
 	private void addJsonPropertySource(ConfigurableEnvironment environment, PropertySource<?> source) {
 		MutablePropertySources sources = environment.getPropertySources();
+		// 获得需要添加到 source 所在的 PropertySource 之前的名字
 		String name = findPropertySource(sources);
+		// 添加到 environment 的 sources 中。
+		// 这么做的效果是，source 高于 SYSTEM_PROPERTIES_PROPERTY_SOURCE_NAME && JNDI_PROPERTY_SOURCE_NAME 之前
 		if (sources.contains(name)) {
 			sources.addBefore(name, source);
-		}
-		else {
+		} else {
 			sources.addFirst(source);
 		}
 	}
 
 	private String findPropertySource(MutablePropertySources sources) {
+		// 在 Servlet 环境下，且有 JNDI_PROPERTY_SOURCE_NAME 属性，则返回 StandardServletEnvironment.JNDI_PROPERTY_SOURCE_NAME
 		if (ClassUtils.isPresent(SERVLET_ENVIRONMENT_CLASS, null)
 				&& sources.contains(StandardServletEnvironment.JNDI_PROPERTY_SOURCE_NAME)) {
 			return StandardServletEnvironment.JNDI_PROPERTY_SOURCE_NAME;
 
 		}
+		// 否则，返回 SYSTEM_PROPERTIES_PROPERTY_SOURCE_NAME 属性
 		return StandardEnvironment.SYSTEM_PROPERTIES_PROPERTY_SOURCE_NAME;
 	}
 
@@ -177,8 +184,8 @@ public class SpringApplicationJsonEnvironmentPostProcessor implements Environmen
 
 	private static class JsonPropertyValue {
 
-		private static final String[] CANDIDATES = { SPRING_APPLICATION_JSON_PROPERTY,
-				SPRING_APPLICATION_JSON_ENVIRONMENT_VARIABLE };
+		private static final String[] CANDIDATES = {SPRING_APPLICATION_JSON_PROPERTY,
+				SPRING_APPLICATION_JSON_ENVIRONMENT_VARIABLE};
 
 		private final PropertySource<?> propertySource;
 

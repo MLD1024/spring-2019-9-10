@@ -72,12 +72,14 @@ public class RandomValuePropertySource extends PropertySource<Random> {
 
 	@Override
 	public Object getProperty(String name) {
+		// <1> 必须以 random. 前缀
 		if (!name.startsWith(PREFIX)) {
 			return null;
 		}
 		if (logger.isTraceEnabled()) {
 			logger.trace("Generating random property for '" + name + "'");
 		}
+		// <2> 根据类型，获得随机值
 		return getRandomValue(name.substring(PREFIX.length()));
 	}
 

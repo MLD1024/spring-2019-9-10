@@ -59,6 +59,7 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 
 	@Override
 	public void onStartup(ServletContext servletContext) throws ServletException {
+
 		super.onStartup(servletContext);
 		registerDispatcherServlet(servletContext);
 	}
