@@ -36,9 +36,15 @@ import org.springframework.lang.Nullable;
  */
 public class SourceFilteringListener implements GenericApplicationListener, SmartApplicationListener {
 
+	/**
+	 * 原始类
+	 */
 	private final Object source;
 
 	@Nullable
+	/**
+	 *  代理的监听器
+	 */
 	private GenericApplicationListener delegate;
 
 
@@ -69,7 +75,7 @@ public class SourceFilteringListener implements GenericApplicationListener, Smar
 
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
-		if (event.getSource() == this.source) {
+		if (event.getSource() == this.source) {// 判断来源
 			onApplicationEventInternal(event);
 		}
 	}
