@@ -87,10 +87,14 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 
 
 	private boolean detectHandlerMethodsInAncestorContexts = false;
-
+	/**
+	 * Mapping 命名策略
+	 */
 	@Nullable
 	private HandlerMethodMappingNamingStrategy<T> namingStrategy;
-
+	/**
+	 * Mapping 注册表
+	 */
 	private final MappingRegistry mappingRegistry = new MappingRegistry();
 
 
@@ -480,17 +484,38 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * <p>Package-private for testing purposes.
 	 */
 	class MappingRegistry {
-
+		/**
+		 * 注册表
+		 *
+		 * KEY: Mapping
+		 */
 		private final Map<T, MappingRegistration<T>> registry = new HashMap<>();
-
+		/**
+		 * 注册表2
+		 *
+		 * KEY：Mapping
+		 */
 		private final Map<T, HandlerMethod> mappingLookup = new LinkedHashMap<>();
-
+		/**
+		 * 直接 URL 的映射
+		 *
+		 * KEY：直接 URL
+		 * VALUE：Mapping 数组
+		 */
 		private final MultiValueMap<String, T> urlLookup = new LinkedMultiValueMap<>();
-
+		/**
+		 * Mapping 的名字与 HandlerMethod 的映射
+		 *
+		 * KEY：Mapping 的名字
+		 * VALUE：HandlerMethod 数组
+		 */
 		private final Map<String, List<HandlerMethod>> nameLookup = new ConcurrentHashMap<>();
 
 		private final Map<HandlerMethod, CorsConfiguration> corsLookup = new ConcurrentHashMap<>();
 
+		/**
+		 * 读写锁
+		 */
 		private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
 		/**
@@ -526,6 +551,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 		}
 
 		/**
+		 * 获取写锁
 		 * Acquire the read lock when using getMappings and getMappingsByUrl.
 		 */
 		public void acquireReadLock() {
@@ -533,6 +559,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 		}
 
 		/**
+		 * 释放读锁
 		 * Release the read lock after using getMappings and getMappingsByUrl.
 		 */
 		public void releaseReadLock() {
@@ -540,24 +567,31 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 		}
 
 		public void register(T mapping, Object handler, Method method) {
+			// <1> 获得写锁
 			this.readWriteLock.writeLock().lock();
 			try {
+				// <2.1> 创建 HandlerMethod 对象
 				HandlerMethod handlerMethod = createHandlerMethod(handler, method);
+				// <2.2> 校验当前 mapping 不存在，否则抛出 IllegalStateException 异常
 				assertUniqueMethodMapping(handlerMethod, mapping);
+				// <2.3> 添加 mapping + HandlerMethod 到 mappingLookup 中
 				this.mappingLookup.put(mapping, handlerMethod);
 
 				if (logger.isInfoEnabled()) {
 					logger.info("Mapped \"" + mapping + "\" onto " + handlerMethod);
 				}
-
+// <3.1> 获得 mapping 对应的普通 URL 数组
 				List<String> directUrls = getDirectUrls(mapping);
+				// <3.2> 添加到 url + mapping 到 urlLookup 集合中
 				for (String url : directUrls) {
 					this.urlLookup.add(url, mapping);
 				}
-
+// <4> 初始化 nameLookup
 				String name = null;
 				if (getNamingStrategy() != null) {
+					// <4.1> 获得 Mapping 的名字
 					name = getNamingStrategy().getName(handlerMethod, mapping);
+					// <4.2> 添加到 mapping 的名字 + HandlerMethod 到 nameLookup 中
 					addMappingName(name, handlerMethod);
 				}
 
@@ -565,10 +599,11 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 				if (corsConfig != null) {
 					this.corsLookup.put(handlerMethod, corsConfig);
 				}
-
+				// <6> 创建 MappingRegistration 对象，并 mapping + MappingRegistration 添加到 registry 中
 				this.registry.put(mapping, new MappingRegistration<>(mapping, handlerMethod, directUrls, name));
 			}
 			finally {
+				// <7> 释放写锁
 				this.readWriteLock.writeLock().unlock();
 			}
 		}
