@@ -671,8 +671,9 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * we default to no exception resolver.
 	 */
 	private void initHandlerExceptionResolvers(ApplicationContext context) {
+		// 置空 handlerExceptionResolvers 处理
 		this.handlerExceptionResolvers = null;
-
+		// 情况一，自动扫描 HandlerExceptionResolver 类型的 Bean 们
 		if (this.detectAllHandlerExceptionResolvers) {
 			// Find all HandlerExceptionResolvers in the ApplicationContext, including ancestor contexts.
 			Map<String, HandlerExceptionResolver> matchingBeans = BeanFactoryUtils
@@ -682,8 +683,8 @@ public class DispatcherServlet extends FrameworkServlet {
 				// We keep HandlerExceptionResolvers in sorted order.
 				AnnotationAwareOrderComparator.sort(this.handlerExceptionResolvers);
 			}
-		}
-		else {
+			// 情况二，获得名字为 HANDLER_EXCEPTION_RESOLVER_BEAN_NAME 的 Bean 们
+		} else {
 			try {
 				HandlerExceptionResolver her =
 						context.getBean(HANDLER_EXCEPTION_RESOLVER_BEAN_NAME, HandlerExceptionResolver.class);
@@ -696,6 +697,7 @@ public class DispatcherServlet extends FrameworkServlet {
 
 		// Ensure we have at least some HandlerExceptionResolvers, by registering
 		// default HandlerExceptionResolvers if no other resolvers are found.
+		// 情况三，如果未获得到，则获得默认配置的 HandlerExceptionResolver 类
 		if (this.handlerExceptionResolvers == null) {
 			this.handlerExceptionResolvers = getDefaultStrategies(context, HandlerExceptionResolver.class);
 			if (logger.isDebugEnabled()) {

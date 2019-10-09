@@ -580,13 +580,13 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 				if (logger.isInfoEnabled()) {
 					logger.info("Mapped \"" + mapping + "\" onto " + handlerMethod);
 				}
-// <3.1> 获得 mapping 对应的普通 URL 数组
+				// <3.1> 获得 mapping 对应的普通 URL 数组
 				List<String> directUrls = getDirectUrls(mapping);
 				// <3.2> 添加到 url + mapping 到 urlLookup 集合中
 				for (String url : directUrls) {
 					this.urlLookup.add(url, mapping);
 				}
-// <4> 初始化 nameLookup
+				// <4> 初始化 nameLookup
 				String name = null;
 				if (getNamingStrategy() != null) {
 					// <4.1> 获得 Mapping 的名字
