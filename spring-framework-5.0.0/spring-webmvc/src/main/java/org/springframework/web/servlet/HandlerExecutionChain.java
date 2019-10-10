@@ -70,9 +70,26 @@ public class HandlerExecutionChain {
 		this(handler, (HandlerInterceptor[]) null);
 	}
 
+
+
+
+
+
+
+
+
+
+
+	/**
+	 * Return the handler object to execute.
+	 */
+	public Object getHandler() {
+		return this.handler;
+	}
+
+
 	/**
 	 * Create a new HandlerExecutionChain.
-	 *
 	 * @param handler      the handler object to execute
 	 * @param interceptors the array of interceptors to apply
 	 *                     (in the given order) before the handler itself executes
@@ -92,12 +109,7 @@ public class HandlerExecutionChain {
 	}
 
 
-	/**
-	 * Return the handler object to execute.
-	 */
-	public Object getHandler() {
-		return this.handler;
-	}
+
 
 	public void addInterceptor(HandlerInterceptor interceptor) {
 		initInterceptorList().add(interceptor);
