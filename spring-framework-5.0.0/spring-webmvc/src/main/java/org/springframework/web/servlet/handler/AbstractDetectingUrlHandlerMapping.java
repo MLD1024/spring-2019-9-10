@@ -32,7 +32,9 @@ import org.springframework.util.ObjectUtils;
  * @see #determineUrlsForHandler
  */
 public abstract class AbstractDetectingUrlHandlerMapping extends AbstractUrlHandlerMapping {
-
+	/**
+	 * 是否只扫描可访问的 Handler 们
+	 */
 	private boolean detectHandlersInAncestorContexts = false;
 
 
@@ -55,7 +57,9 @@ public abstract class AbstractDetectingUrlHandlerMapping extends AbstractUrlHand
 	 */
 	@Override
 	public void initApplicationContext() throws ApplicationContextException {
+		// 调用父类方法，进行初始化
 		super.initApplicationContext();
+		// 自动探测处理器
 		detectHandlers();
 	}
 
@@ -68,6 +72,7 @@ public abstract class AbstractDetectingUrlHandlerMapping extends AbstractUrlHand
 	 * @see #determineUrlsForHandler(String)
 	 */
 	protected void detectHandlers() throws BeansException {
+		// <1> 获得 Bean 的名字的数组
 		ApplicationContext applicationContext = obtainApplicationContext();
 		if (logger.isDebugEnabled()) {
 			logger.debug("Looking for URL mappings in application context: " + applicationContext);
@@ -77,8 +82,11 @@ public abstract class AbstractDetectingUrlHandlerMapping extends AbstractUrlHand
 				applicationContext.getBeanNamesForType(Object.class));
 
 		// Take any bean name that we can determine URLs for.
+		// <2> 遍历 Bean ，逐个注册
 		for (String beanName : beanNames) {
+			// <2.1> 获得 Bean 对应的 URL 们
 			String[] urls = determineUrlsForHandler(beanName);
+			// <2.2> 如果 URL 们非空，则执行注册处理器
 			if (!ObjectUtils.isEmpty(urls)) {
 				// URL paths found: Let's consider it a handler.
 				registerHandler(urls, beanName);

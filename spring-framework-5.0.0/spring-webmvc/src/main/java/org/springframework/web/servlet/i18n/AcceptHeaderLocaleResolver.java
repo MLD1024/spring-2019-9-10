@@ -31,14 +31,15 @@ import org.springframework.web.servlet.LocaleResolver;
  * {@link LocaleResolver} implementation that simply uses the primary locale
  * specified in the "accept-language" header of the HTTP request (that is,
  * the locale sent by the client browser, normally that of the client's OS).
- *
+ * 简单地使用 HTTP 请求头里的 Accept-Language 来指定 Locale对象(即客户端浏览器发送的语言环境，通常是客户端的操作系统)
+ * 注意:不支持 setLocale 方法，因为只能通过更改客户端的区域设置来更改 Accept-Language 请求头
  * <p>Note: Does not support {@code setLocale}, since the accept header
  * can only be changed through changing the client's locale settings.
  *
  * @author Juergen Hoeller
  * @author Rossen Stoyanchev
- * @since 27.02.2003
  * @see javax.servlet.http.HttpServletRequest#getLocale()
+ * @since 27.02.2003
  */
 public class AcceptHeaderLocaleResolver implements LocaleResolver {
 
@@ -52,6 +53,7 @@ public class AcceptHeaderLocaleResolver implements LocaleResolver {
 	 * Configure supported locales to check against the requested locales
 	 * determined via {@link HttpServletRequest#getLocales()}. If this is not
 	 * configured then {@link HttpServletRequest#getLocale()} is used instead.
+	 * 配置支持的区域设置列表
 	 * @param locales the supported locales
 	 * @since 4.3
 	 */
@@ -62,6 +64,7 @@ public class AcceptHeaderLocaleResolver implements LocaleResolver {
 
 	/**
 	 * Return the configured list of supported locales.
+	 * 返回配置的支持的区域设置列表
 	 * @since 4.3
 	 */
 	public List<Locale> getSupportedLocales() {
@@ -74,6 +77,7 @@ public class AcceptHeaderLocaleResolver implements LocaleResolver {
 	 * <p>By default this is not set in which case when there is "Accept-Language"
 	 * header, the default locale for the server is used as defined in
 	 * {@link HttpServletRequest#getLocale()}.
+	 * 如果 HTTP 请求头没有 Accept-Language，则使用该默认的语言环境设置
 	 * @param defaultLocale the default locale to use
 	 * @since 4.3
 	 */
@@ -83,6 +87,7 @@ public class AcceptHeaderLocaleResolver implements LocaleResolver {
 
 	/**
 	 * The configured default locale, if any.
+	 *  返回默认配置的语言环境(如果有)
 	 * @since 4.3
 	 */
 	@Nullable
@@ -120,8 +125,7 @@ public class AcceptHeaderLocaleResolver implements LocaleResolver {
 					// Full match: language + country, possibly narrowed from earlier language-only match
 					return locale;
 				}
-			}
-			else if (languageMatch == null) {
+			} else if (languageMatch == null) {
 				// Let's try to find a language-only match as a fallback
 				for (Locale candidate : supportedLocales) {
 					if (!StringUtils.hasLength(candidate.getCountry()) &&

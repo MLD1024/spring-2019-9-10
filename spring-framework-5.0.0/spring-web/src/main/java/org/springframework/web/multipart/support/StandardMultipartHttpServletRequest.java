@@ -56,6 +56,9 @@ import org.springframework.web.multipart.MultipartFile;
  */
 public class StandardMultipartHttpServletRequest extends AbstractMultipartHttpServletRequest {
 
+	/**
+	 * 普通参数名的集合
+	 */
 	@Nullable
 	private Set<String> multipartParameterNames;
 
@@ -82,6 +85,7 @@ public class StandardMultipartHttpServletRequest extends AbstractMultipartHttpSe
 			throws MultipartException {
 
 		super(request);
+		// <1> 如果不延迟加载，则解析请求
 		if (!lazyParsing) {
 			parseRequest(request);
 		}
@@ -93,20 +97,26 @@ public class StandardMultipartHttpServletRequest extends AbstractMultipartHttpSe
 			Collection<Part> parts = request.getParts();
 			this.multipartParameterNames = new LinkedHashSet<>(parts.size());
 			MultiValueMap<String, MultipartFile> files = new LinkedMultiValueMap<>(parts.size());
+			// <1> 遍历 parts 数组
 			for (Part part : parts) {
+				// <1.1> 获得 CONTENT_DISPOSITION 头的值
 				String headerValue = part.getHeader(HttpHeaders.CONTENT_DISPOSITION);
+				// <1.2> 获得 ContentDisposition 对象
 				ContentDisposition disposition = ContentDisposition.parse(headerValue);
+				// <1.3> 获得文件名
 				String filename = disposition.getFilename();
+				// <1.4> 情况一，文件名非空，说明是文件参数，则创建 StandardMultipartFile 对象，添加到 files 中
 				if (filename != null) {
 					if (filename.startsWith("=?") && filename.endsWith("?=")) {
 						filename = MimeDelegate.decode(filename);
 					}
 					files.add(part.getName(), new StandardMultipartFile(part, filename));
-				}
-				else {
+					// <1.5> 情况二，文件名为空，说明是普通参数，则添加 part.name 到 multipartParameterNames 中
+				} else {
 					this.multipartParameterNames.add(part.getName());
 				}
 			}
+			// <2> 设置到 multipartFiles 属性
 			setMultipartFiles(files);
 		}
 		catch (Throwable ex) {

@@ -95,6 +95,7 @@ public interface MultipartResolver {
 	boolean isMultipart(HttpServletRequest request);
 
 	/**
+	 * 将 HttpServletRequest 请求封装成 MultipartHttpServletRequest 对象
 	 * Parse the given HTTP request into multipart files and parameters,
 	 * and wrap the request inside a
 	 * {@link org.springframework.web.multipart.MultipartHttpServletRequest}
@@ -115,9 +116,10 @@ public interface MultipartResolver {
 	MultipartHttpServletRequest resolveMultipart(HttpServletRequest request) throws MultipartException;
 
 	/**
+	 * 清理处理 multipart 产生的资源，例如临时文件
 	 * Cleanup any resources used for the multipart handling,
 	 * like a storage for the uploaded files.
-	 * 清理处理 multipart 产生的资源，例如临时文件
+	 *
 	 * @param request the request to cleanup resources for
 	 */
 	void cleanupMultipart(MultipartHttpServletRequest request);
