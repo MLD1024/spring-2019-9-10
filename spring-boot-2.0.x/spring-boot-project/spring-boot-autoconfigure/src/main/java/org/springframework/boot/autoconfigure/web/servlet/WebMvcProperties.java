@@ -365,7 +365,7 @@ public class WebMvcProperties {
 	public enum LocaleResolver {
 
 		/**
-		 * Always use the configured locale.
+		 * Always use the configured locale. fixed
 		 */
 		FIXED,
 
