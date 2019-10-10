@@ -176,7 +176,7 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 	protected <T> void writeWithMessageConverters(@Nullable T value, MethodParameter returnType,
 			ServletServerHttpRequest inputMessage, ServletServerHttpResponse outputMessage)
 			throws IOException, HttpMediaTypeNotAcceptableException, HttpMessageNotWritableException {
-
+		// <1> 获得 body、valueType、targetType
 		Object outputValue;
 		Class<?> valueType;
 		Type declaredType;
@@ -191,7 +191,7 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 			valueType = getReturnValueType(outputValue, returnType);
 			declaredType = getGenericType(returnType);
 		}
-
+		// <2> 是否为 Resource 类型。暂时无视，实际暂时没用到
 		if (isResourceType(value, returnType)) {
 			outputMessage.getHeaders().set(HttpHeaders.ACCEPT_RANGES, "bytes");
 			if (value != null && inputMessage.getHeaders().getFirst(HttpHeaders.RANGE) != null) {
@@ -242,7 +242,7 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 			}
 			MediaType.sortBySpecificityAndQuality(mediaTypesToUse);
 		}
-
+		// <3> 选择使用的 MediaType
 		MediaType selectedMediaType = null;
 		for (MediaType mediaType : mediaTypesToUse) {
 			if (mediaType.isConcrete()) {
