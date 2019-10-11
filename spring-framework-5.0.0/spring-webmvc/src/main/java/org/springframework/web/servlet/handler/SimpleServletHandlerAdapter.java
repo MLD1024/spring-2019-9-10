@@ -56,16 +56,14 @@ public class SimpleServletHandlerAdapter implements HandlerAdapter {
 
 	@Override
 	public boolean supports(Object handler) {
-		// 判断是 Servlet 类型
-		return (handler instanceof Servlet);
+		return (handler instanceof Servlet);// 判断是 Servlet 类型
 	}
 
 	@Override
 	@Nullable
 	public ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
-		// Servlet 类型的调用
-		((Servlet) handler).service(request, response);
+		((Servlet) handler).service(request, response);// Servlet 类型的调用
 		return null;
 	}
 

@@ -126,14 +126,13 @@ public class InvocableHandlerMethod extends HandlerMethod {
 	 */
 	@Nullable
 	public Object invokeForRequest(NativeWebRequest request, @Nullable ModelAndViewContainer mavContainer,
-			Object... providedArgs) throws Exception {
-		// <y> 解析参数
+								   Object... providedArgs) throws Exception {
+
 		Object[] args = getMethodArgumentValues(request, mavContainer, providedArgs);
 		if (logger.isTraceEnabled()) {
 			logger.trace("Invoking '" + ClassUtils.getQualifiedMethodName(getMethod(), getBeanType()) +
 					"' with arguments " + Arrays.toString(args));
 		}
-		// 执行调用
 		Object returnValue = doInvoke(args);
 		if (logger.isTraceEnabled()) {
 			logger.trace("Method [" + ClassUtils.getQualifiedMethodName(getMethod(), getBeanType()) +
@@ -146,38 +145,30 @@ public class InvocableHandlerMethod extends HandlerMethod {
 	 * Get the method argument values for the current request.
 	 */
 	private Object[] getMethodArgumentValues(NativeWebRequest request, @Nullable ModelAndViewContainer mavContainer,
-			Object... providedArgs) throws Exception {
-		// 方法的参数信息的数组
+											 Object... providedArgs) throws Exception {
+
 		MethodParameter[] parameters = getMethodParameters();
-		// 解析后的参数结果数组
 		Object[] args = new Object[parameters.length];
-		// 遍历，开始解析
 		for (int i = 0; i < parameters.length; i++) {
-			// 获得当前遍历的 MethodParameter 对象，并设置 parameterNameDiscoverer 到其中
 			MethodParameter parameter = parameters[i];
 			parameter.initParameterNameDiscovery(this.parameterNameDiscoverer);
-			// <1> 先从 providedArgs 中获得参数。如果获得到，则进入下一个参数的解析
 			args[i] = resolveProvidedArgument(parameter, providedArgs);
 			if (args[i] != null) {
 				continue;
 			}
-			// <2> 判断 argumentResolvers 是否支持当前的参数解析
 			if (this.argumentResolvers.supportsParameter(parameter)) {
 				try {
-					// 执行解析。解析成功后，则进入下一个参数的解析
 					args[i] = this.argumentResolvers.resolveArgument(
 							parameter, mavContainer, request, this.dataBinderFactory);
 					continue;
 				}
 				catch (Exception ex) {
-					// 解析失败，打印日志，并抛出异常
 					if (logger.isDebugEnabled()) {
 						logger.debug(getArgumentResolutionErrorMessage("Failed to resolve", i), ex);
 					}
 					throw ex;
 				}
 			}
-			// 解析失败，抛出 IllegalStateException 异常
 			if (args[i] == null) {
 				throw new IllegalStateException("Could not resolve method parameter at index " +
 						parameter.getParameterIndex() + " in " + parameter.getExecutable().toGenericString() +
@@ -213,10 +204,8 @@ public class InvocableHandlerMethod extends HandlerMethod {
 	 * Invoke the handler method with the given argument values.
 	 */
 	protected Object doInvoke(Object... args) throws Exception {
-		// <z1> 设置方法为可访问
 		ReflectionUtils.makeAccessible(getBridgedMethod());
 		try {
-			// <z2> 执行调用
 			return getBridgedMethod().invoke(getBean(), args);
 		}
 		catch (IllegalArgumentException ex) {

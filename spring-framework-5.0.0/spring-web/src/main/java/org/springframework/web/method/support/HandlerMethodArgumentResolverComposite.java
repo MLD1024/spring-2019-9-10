@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.web.method.support;
+package org.springframework.messaging.handler.invocation;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -22,33 +22,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.MethodParameter;
 import org.springframework.lang.Nullable;
-import org.springframework.web.bind.support.WebDataBinderFactory;
-import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.messaging.Message;
 
 /**
- * Resolves method parameters by delegating to a list of registered {@link HandlerMethodArgumentResolver}s.
- * Previously resolved method parameters are cached for faster lookups.
+ * Resolves method parameters by delegating to a list of registered
+ * {@link HandlerMethodArgumentResolver}. Previously resolved method parameters are cached
+ * for faster lookups.
  *
  * @author Rossen Stoyanchev
  * @author Juergen Hoeller
- * @since 3.1
+ * @since 4.0
  */
 public class HandlerMethodArgumentResolverComposite implements HandlerMethodArgumentResolver {
 
-	protected final Log logger = LogFactory.getLog(getClass());
-
-	/**
-	 *  HandlerMethodArgumentResolver 数组
-	 */
 	private final List<HandlerMethodArgumentResolver> argumentResolvers = new LinkedList<>();
-	/**
-	 * MethodParameter 与 HandlerMethodArgumentResolver 的映射，作为缓存。
-	 */
+
 	private final Map<MethodParameter, HandlerMethodArgumentResolver> argumentResolverCache =
 			new ConcurrentHashMap<>(256);
 
@@ -56,8 +46,8 @@ public class HandlerMethodArgumentResolverComposite implements HandlerMethodArgu
 	/**
 	 * Add the given {@link HandlerMethodArgumentResolver}.
 	 */
-	public HandlerMethodArgumentResolverComposite addResolver(HandlerMethodArgumentResolver resolver) {
-		this.argumentResolvers.add(resolver);
+	public HandlerMethodArgumentResolverComposite addResolver(HandlerMethodArgumentResolver argumentResolver) {
+		this.argumentResolvers.add(argumentResolver);
 		return this;
 	}
 
@@ -78,10 +68,10 @@ public class HandlerMethodArgumentResolverComposite implements HandlerMethodArgu
 	 * Add the given {@link HandlerMethodArgumentResolver}s.
 	 */
 	public HandlerMethodArgumentResolverComposite addResolvers(
-			@Nullable List<? extends HandlerMethodArgumentResolver> resolvers) {
+			@Nullable List<? extends HandlerMethodArgumentResolver> argumentResolvers) {
 
-		if (resolvers != null) {
-			for (HandlerMethodArgumentResolver resolver : resolvers) {
+		if (argumentResolvers != null) {
+			for (HandlerMethodArgumentResolver resolver : argumentResolvers) {
 				this.argumentResolvers.add(resolver);
 			}
 		}
@@ -97,7 +87,6 @@ public class HandlerMethodArgumentResolverComposite implements HandlerMethodArgu
 
 	/**
 	 * Clear the list of configured resolvers.
-	 * @since 4.3
 	 */
 	public void clear() {
 		this.argumentResolvers.clear();
@@ -110,7 +99,7 @@ public class HandlerMethodArgumentResolverComposite implements HandlerMethodArgu
 	 */
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
-		return (getArgumentResolver(parameter) != null);
+		return getArgumentResolver(parameter) != null;
 	}
 
 	/**
@@ -119,16 +108,12 @@ public class HandlerMethodArgumentResolverComposite implements HandlerMethodArgu
 	 */
 	@Override
 	@Nullable
-	public Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer,
-			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception {
-		// 获得 HandlerMethodArgumentResolver 对象
+	public Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
 		HandlerMethodArgumentResolver resolver = getArgumentResolver(parameter);
-		// 如果获得不到，抛出 IllegalArgumentException 异常
 		if (resolver == null) {
-			throw new IllegalArgumentException("Unknown parameter type [" + parameter.getParameterType().getName() + "]");
+			throw new IllegalStateException("Unknown parameter type [" + parameter.getParameterType().getName() + "]");
 		}
-		// 执行解析
-		return resolver.resolveArgument(parameter, mavContainer, webRequest, binderFactory);
+		return resolver.resolveArgument(parameter, message);
 	}
 
 	/**
@@ -136,18 +121,11 @@ public class HandlerMethodArgumentResolverComposite implements HandlerMethodArgu
 	 */
 	@Nullable
 	private HandlerMethodArgumentResolver getArgumentResolver(MethodParameter parameter) {
-		// 优先从 argumentResolverCache 缓存中，获得 parameter 对应的 HandlerMethodArgumentResolver 对象
 		HandlerMethodArgumentResolver result = this.argumentResolverCache.get(parameter);
 		if (result == null) {
-			// 获得不到，则遍历 argumentResolvers 数组，逐个判断是否支持。
-			for (HandlerMethodArgumentResolver methodArgumentResolver : this.argumentResolvers) {
-				if (logger.isTraceEnabled()) {
-					logger.trace("Testing if argument resolver [" + methodArgumentResolver + "] supports [" +
-							parameter.getGenericParameterType() + "]");
-				}
-				// 如果支持，则添加到 argumentResolverCache 缓存中，并返回
-				if (methodArgumentResolver.supportsParameter(parameter)) {
-					result = methodArgumentResolver;
+			for (HandlerMethodArgumentResolver resolver : this.argumentResolvers) {
+				if (resolver.supportsParameter(parameter)) {
+					result = resolver;
 					this.argumentResolverCache.put(parameter, result);
 					break;
 				}

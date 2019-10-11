@@ -41,22 +41,20 @@ public class SimpleControllerHandlerAdapter implements HandlerAdapter {
 
 	@Override
 	public boolean supports(Object handler) {
-		// <1> 判断是 Controller 类型
-		return (handler instanceof Controller);
+		return (handler instanceof Controller);// <1> 判断是 Controller 类型
 	}
 
 	@Override
 	@Nullable
 	public ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
-		// <2> Controller 类型的调用
-		return ((Controller) handler).handleRequest(request, response);
+
+		return ((Controller) handler).handleRequest(request, response);// <2> Controller 类型的调用
 	}
 
 	@Override
 	public long getLastModified(HttpServletRequest request, Object handler) {
-		// 处理器实现了 LastModified 接口的情况下
-		if (handler instanceof LastModified) {
+		if (handler instanceof LastModified) {// 处理器实现了 LastModified 接口的情况下
 			return ((LastModified) handler).getLastModified(request);
 		}
 		return -1L;
