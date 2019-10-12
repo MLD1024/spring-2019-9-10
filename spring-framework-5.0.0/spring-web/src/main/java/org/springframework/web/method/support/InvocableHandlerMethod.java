@@ -128,12 +128,12 @@ public class InvocableHandlerMethod extends HandlerMethod {
 	public Object invokeForRequest(NativeWebRequest request, @Nullable ModelAndViewContainer mavContainer,
 								   Object... providedArgs) throws Exception {
 
-		Object[] args = getMethodArgumentValues(request, mavContainer, providedArgs);
+		Object[] args = getMethodArgumentValues(request, mavContainer, providedArgs);// 解析参数
 		if (logger.isTraceEnabled()) {
 			logger.trace("Invoking '" + ClassUtils.getQualifiedMethodName(getMethod(), getBeanType()) +
 					"' with arguments " + Arrays.toString(args));
 		}
-		Object returnValue = doInvoke(args);
+		Object returnValue = doInvoke(args);// 反射调用
 		if (logger.isTraceEnabled()) {
 			logger.trace("Method [" + ClassUtils.getQualifiedMethodName(getMethod(), getBeanType()) +
 					"] returned [" + returnValue + "]");
@@ -147,7 +147,7 @@ public class InvocableHandlerMethod extends HandlerMethod {
 	private Object[] getMethodArgumentValues(NativeWebRequest request, @Nullable ModelAndViewContainer mavContainer,
 											 Object... providedArgs) throws Exception {
 
-		MethodParameter[] parameters = getMethodParameters();
+		MethodParameter[] parameters = getMethodParameters();// 方法的参数信息的数组
 		Object[] args = new Object[parameters.length];
 		for (int i = 0; i < parameters.length; i++) {
 			MethodParameter parameter = parameters[i];
@@ -204,9 +204,9 @@ public class InvocableHandlerMethod extends HandlerMethod {
 	 * Invoke the handler method with the given argument values.
 	 */
 	protected Object doInvoke(Object... args) throws Exception {
-		ReflectionUtils.makeAccessible(getBridgedMethod());
+		ReflectionUtils.makeAccessible(getBridgedMethod());// 设置方法可访问
 		try {
-			return getBridgedMethod().invoke(getBean(), args);
+			return getBridgedMethod().invoke(getBean(), args);// 执行调用
 		}
 		catch (IllegalArgumentException ex) {
 			assertTargetBean(getBridgedMethod(), getBean(), args);

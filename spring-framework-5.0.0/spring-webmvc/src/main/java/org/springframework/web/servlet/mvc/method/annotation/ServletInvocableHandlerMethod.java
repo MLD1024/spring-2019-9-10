@@ -99,8 +99,8 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 	public void invokeAndHandle(ServletWebRequest webRequest, ModelAndViewContainer mavContainer,
 								Object... providedArgs) throws Exception {
 
-		Object returnValue = invokeForRequest(webRequest, mavContainer, providedArgs);
-		setResponseStatus(webRequest);
+		Object returnValue = invokeForRequest(webRequest, mavContainer, providedArgs);// 执行调用
+		setResponseStatus(webRequest);// 设置响应状态码
 
 		if (returnValue == null) {
 			if (isRequestNotModified(webRequest) || getResponseStatus() != null || mavContainer.isRequestHandled()) {

@@ -791,7 +791,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			if (session != null) {
 				Object mutex = WebUtils.getSessionMutex(session);
 				synchronized (mutex) {
-					mav = invokeHandlerMethod(request, response, handlerMethod);
+					mav = invokeHandlerMethod(request, response, handlerMethod);// 执行方法
 				}
 			} else {
 				// No HttpSession available -> no mutex necessary
@@ -859,7 +859,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			WebDataBinderFactory binderFactory = getDataBinderFactory(handlerMethod);
 			ModelFactory modelFactory = getModelFactory(handlerMethod, binderFactory);
 
-			ServletInvocableHandlerMethod invocableMethod = createInvocableHandlerMethod(handlerMethod);
+			ServletInvocableHandlerMethod invocableMethod = createInvocableHandlerMethod(handlerMethod);// 设置属性
 			if (this.argumentResolvers != null) {
 				invocableMethod.setHandlerMethodArgumentResolvers(this.argumentResolvers);
 			}
@@ -893,12 +893,12 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 				invocableMethod = invocableMethod.wrapConcurrentResult(result);
 			}
 
-			invocableMethod.invokeAndHandle(webRequest, mavContainer);
+			invocableMethod.invokeAndHandle(webRequest, mavContainer);// 执行调用
 			if (asyncManager.isConcurrentHandlingStarted()) {
 				return null;
 			}
 
-			return getModelAndView(mavContainer, modelFactory, webRequest);
+			return getModelAndView(mavContainer, modelFactory, webRequest);// 获取mo
 		} finally {
 			webRequest.requestCompleted();
 		}
