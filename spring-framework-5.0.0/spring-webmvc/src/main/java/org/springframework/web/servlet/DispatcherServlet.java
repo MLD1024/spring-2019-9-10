@@ -961,14 +961,14 @@ public class DispatcherServlet extends FrameworkServlet {
 				multipartRequestParsed = (processedRequest != request);
 
 				// Determine handler for the current request.
-				mappedHandler = getHandler(processedRequest);
+				mappedHandler = getHandler(processedRequest);// 获取处理器
 				if (mappedHandler == null) {
 					noHandlerFound(processedRequest, response);
 					return;
 				}
 
 				// Determine handler adapter for the current request.
-				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
+				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());// 获取处理器执行器
 
 				// Process last-modified header, if supported by the handler.
 				String method = request.getMethod();
@@ -988,7 +988,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				}
 
 				// Actually invoke the handler.
-				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
+				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());// 执行器执行处理器
 
 				if (asyncManager.isConcurrentHandlingStarted()) {
 					return;
@@ -1322,7 +1322,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			if (mv.getStatus() != null) {
 				response.setStatus(mv.getStatus().value());
 			}
-			view.render(mv.getModelInternal(), request, response);
+			view.render(mv.getModelInternal(), request, response);// 渲染视图
 		}
 		catch (Exception ex) {
 			if (logger.isDebugEnabled()) {

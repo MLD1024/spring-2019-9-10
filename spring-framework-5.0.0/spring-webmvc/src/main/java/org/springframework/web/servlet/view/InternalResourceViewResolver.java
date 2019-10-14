@@ -61,13 +61,10 @@ public class InternalResourceViewResolver extends UrlBasedViewResolver {
 	 * is present.
 	 */
 	public InternalResourceViewResolver() {
-		// 获得 viewClass
 		Class<?> viewClass = requiredViewClass();
-
 		if (InternalResourceView.class == viewClass && jstlPresent) {
 			viewClass = JstlView.class;
 		}
-		// 设置viewClass
 		setViewClass(viewClass);
 	}
 
@@ -106,9 +103,7 @@ public class InternalResourceViewResolver extends UrlBasedViewResolver {
 
 	@Override
 	protected AbstractUrlBasedView buildView(String viewName) throws Exception {
-		// 调用父方法
 		InternalResourceView view = (InternalResourceView) super.buildView(viewName);
-		// 设置 View 对象的相关属性
 		if (this.alwaysInclude != null) {
 			view.setAlwaysInclude(this.alwaysInclude);
 		}

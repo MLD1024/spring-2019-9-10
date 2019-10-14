@@ -436,7 +436,7 @@ public class ResourceHttpRequestHandler extends WebContentGenerator
 			throws ServletException, IOException {
 
 		// For very general mappings (e.g. "/") we need to check 404 first
-		Resource resource = getResource(request);
+		Resource resource = getResource(request);// 获取静态资源
 		if (resource == null) {
 			logger.trace("No matching resource found - returning 404");
 			response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -484,7 +484,7 @@ public class ResourceHttpRequestHandler extends WebContentGenerator
 		if (request.getHeader(HttpHeaders.RANGE) == null) {
 			Assert.state(this.resourceHttpMessageConverter != null, "Not initialized");
 			setHeaders(response, resource, mediaType);
-			this.resourceHttpMessageConverter.write(resource, mediaType, outputMessage);
+			this.resourceHttpMessageConverter.write(resource, mediaType, outputMessage);// 写入输出流
 		}
 		else {
 			Assert.state(this.resourceRegionHttpMessageConverter != null, "Not initialized");
