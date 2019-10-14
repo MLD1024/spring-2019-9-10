@@ -148,7 +148,7 @@ public class PathResourceResolver extends AbstractResourceResolver {
 	private Resource getResource(String resourcePath, @Nullable HttpServletRequest request,
 			List<? extends Resource> locations) {
 
-		for (Resource location : locations) {
+		for (Resource location : locations) {// 遍历静态文件可能在的位置
 			try {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Checking location: " + location);
