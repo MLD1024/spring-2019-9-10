@@ -143,7 +143,7 @@ public class InternalResourceView extends AbstractUrlBasedView {
 		// Expose helpers as request attributes, if any.
 		exposeHelpers(request);
 
-		// Determine the path for the request dispatcher.
+		// Determine the path for the request dispatcher. 解析并且创建重定向请求
 		String dispatcherPath = prepareForRendering(request, response);
 
 		// Obtain a RequestDispatcher for the target resource (typically a JSP).
@@ -167,7 +167,7 @@ public class InternalResourceView extends AbstractUrlBasedView {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Forwarding to resource [" + getUrl() + "] in InternalResourceView '" + getBeanName() + "'");
 			}
-			rd.forward(request, response);
+			rd.forward(request, response);// 转发请求
 		}
 	}
 
